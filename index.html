@@ -1,52 +1,493 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
-
+<!doctype html>
+<html lang="en">
 <head>
-  <!-- Metadata -->
-  <meta charset="utf-8" />
-  <meta name="author" content="BinaryBotPro" />
-  <meta name="description" content="Password protect links" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-
-  <link rel="apple-touch-icon" sizes="57x57" href="/favicon/apple-icon-57x57.png">
-  <link rel="apple-touch-icon" sizes="60x60" href="/favicon/apple-icon-60x60.png">
-  <link rel="apple-touch-icon" sizes="72x72" href="/favicon/apple-icon-72x72.png">
-  <link rel="apple-touch-icon" sizes="76x76" href="/favicon/apple-icon-76x76.png">
-  <link rel="apple-touch-icon" sizes="114x114" href="/favicon/apple-icon-114x114.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="/favicon/apple-icon-120x120.png">
-  <link rel="apple-touch-icon" sizes="144x144" href="/favicon/apple-icon-144x144.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/favicon/apple-icon-152x152.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-icon-180x180.png">
-  <link rel="icon" type="image/png" sizes="192x192"  href="/favicon/android-icon-192x192.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="/favicon/favicon-96x96.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-  <link rel="manifest" href="/favicon/manifest.json">
-  <meta name="msapplication-TileColor" content="#ffffff">
-  <meta name="msapplication-TileImage" content="/favicon/ms-icon-144x144.png">
-  <meta name="theme-color" content="#ffffff">
-  
-  
-  
-
-  <title>Link Locker - Password protect links</title>
-
-  <!-- Styles -->
-  <link rel="stylesheet" href="style.css" type="text/css" />
-
-  <!-- Scripts -->
-  <script type="text/javascript" src="b64.js"></script>
-  <script type="text/javascript" src="api.js"></script>
-  <script type="text/javascript" src="index.js"> </script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Deriv VIX100 50-tick Strategy — Single HTML + JS</title>
+<style>
+  body{font-family:Inter,system-ui,Arial,sans-serif;background:#0f1724;color:#e6eef8;margin:0;padding:20px}
+  .card{background:#0b1220;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 6px 18px rgba(4,6,12,.6)}
+  h1{margin:0 0 8px;font-size:20px}
+  label{display:block;font-size:13px;margin:8px 0 4px;color:#9fb0d6}
+  input,select,button{padding:8px;border-radius:8px;border:1px solid #203248;background:#071026;color:#e6eef8;font-size:14px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .col{flex:1;min-width:200px}
+  #ticks{height:140px;overflow:auto;padding:8px;background:#071426;border-radius:8px;border:1px solid #16243a;font-family:monospace;font-size:13px}
+  #log{height:200px;overflow:auto;padding:8px;background:#071426;border-radius:8px;border:1px solid #16243a;font-family:monospace;font-size:13px}
+  .green{color:#7ef2a4} .red{color:#ff9b9b} .muted{color:#7b98c0;font-size:13px}
+  .bigstat{font-size:22px;font-weight:600}
+  button.primary{background:#1f6feb;border:1px solid #123c8a}
+  small.note{color:#7b98c0}
+  .controls {display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .toggle {display:inline-flex;align-items:center;gap:8px}
+</style>
 </head>
+<body>
 
-<body onload="main()">
+<div class="card">
+  <h1>Deriv VIX100 — 50-tick strategy (all-in-one)</h1>
+  <div class="muted">Logic: collect 50 ticks → if first == min and last == max → BUY UP (1m). If first == max and last == min → BUY DOWN (1m). Martingale available.</div>
+</div>
 
-  <!-- Display errors in a big red box -->
-  <div class="error red-border" style="display: none">
-    <p id="errortext">Error</p>
-    <button onclick="main()">Try again</button>
+<div class="card">
+  <div class="row">
+    <div class="col">
+      <label>Mode</label>
+      <div class="controls">
+        <select id="mode">
+          <option value="demo">Demo (simulate)</option>
+          <option value="real">Real (requires API token)</option>
+        </select>
+        <div style="flex:1"></div>
+      </div>
+
+      <label>Deriv API Token (only required for Real)</label>
+      <input id="token" placeholder="API token (for Real mode)" />
+
+      <label>Symbol</label>
+      <input id="symbol" value="R_100" />
+
+      <label>Initial stake (currency USD)</label>
+      <input id="initialStake" value="1" type="number" min="0.01" step="0.01" />
+
+      <label>Martingale multiplier</label>
+      <input id="martingale" value="2.1" type="number" step="0.01" />
+
+      <label>Trade duration (seconds)</label>
+      <input id="duration" value="60" type="number" min="10" />
+
+      <label>Stop loss (session P/L)</label>
+      <input id="stopLoss" value="-20" type="number" />
+
+      <label>Take profit (session P/L)</label>
+      <input id="takeProfit" value="30" type="number" />
+
+      <div style="margin-top:8px" class="controls">
+        <button id="connectBtn" class="primary">Connect & Start</button>
+        <button id="stopBtn">Stop</button>
+      </div>
+      <div style="margin-top:8px"><small class="note">Tip: start in <strong>Demo</strong> first to verify behavior.</small></div>
+    </div>
+
+    <div class="col">
+      <label>Session stats</label>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div><div class="muted">Trades</div><div id="statTrades" class="bigstat">0</div></div>
+        <div><div class="muted">Wins</div><div id="statWins" class="bigstat green">0</div></div>
+        <div><div class="muted">Losses</div><div id="statLosses" class="bigstat red">0</div></div>
+        <div><div class="muted">P/L (USD)</div><div id="statPL" class="bigstat">0.00</div></div>
+      </div>
+
+      <label>Last 50 ticks ( newest at bottom )</label>
+      <div id="ticks"></div>
+
+      <label>Strategy / trade log</label>
+      <div id="log"></div>
+    </div>
   </div>
-</body>
+</div>
 
+<div class="card muted">
+  <strong>How it works:</strong>
+  <ol>
+    <li>Connects to Deriv websocket and subscribes to ticks for the symbol.</li>
+    <li>Keeps the latest 50 ticks in memory. When there are 50 ticks, evaluates the rule:
+      - if first tick is global minimum and last tick is global maximum -> BUY UP
+      - if first tick is global maximum and last tick is global minimum -> BUY DOWN</li>
+    <li>Executes trade (Demo: simulated; Real: attempts to place actual contract). After duration ends, determines win/loss using tick at expiry.</li>
+    <li>Martingale logic: after a loss, stake = previous_stake * martingale; after a win, stake resets to initial stake.</li>
+  </ol>
+</div>
+
+<script>
+(() => {
+  // UI elements
+  const connectBtn = document.getElementById('connectBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const ticksDiv = document.getElementById('ticks');
+  const logDiv = document.getElementById('log');
+  const modeSelect = document.getElementById('mode');
+  const tokenInput = document.getElementById('token');
+  const symbolInput = document.getElementById('symbol');
+  const initialStakeInput = document.getElementById('initialStake');
+  const martingaleInput = document.getElementById('martingale');
+  const durationInput = document.getElementById('duration');
+  const stopLossInput = document.getElementById('stopLoss');
+  const takeProfitInput = document.getElementById('takeProfit');
+  const statTrades = document.getElementById('statTrades');
+  const statWins = document.getElementById('statWins');
+  const statLosses = document.getElementById('statLosses');
+  const statPL = document.getElementById('statPL');
+
+  // state
+  let ws = null;
+  let ticks = []; // { epoch, quote }
+  let running = false;
+  let currentStake = parseFloat(initialStakeInput.value);
+  let baseStake = currentStake;
+  let martingale = parseFloat(martingaleInput.value);
+  let durationSec = parseInt(durationInput.value,10);
+  let mode = modeSelect.value; // demo or real
+  let session = { trades:0, wins:0, losses:0, pl:0 };
+  let pendingTrades = []; // track open trades (for demo)
+  let symbol = symbolInput.value || 'R_100';
+  const APP_ID = 1089; // public app id used commonly; user may change if needed
+
+  // helpers
+  function log(msg, cls='') {
+    const time = new Date().toLocaleTimeString();
+    const el = document.createElement('div');
+    el.innerHTML = `<span style="color:#7b98c0">[${time}]</span> ${msg}`;
+    if (cls) el.classList.add(cls);
+    logDiv.appendChild(el);
+    logDiv.scrollTop = logDiv.scrollHeight;
+  }
+
+  function refreshUI() {
+    // ticks list
+    ticksDiv.innerHTML = ticks.map(t => {
+      const cls = t.quote_change>0 ? 'green' : (t.quote_change<0 ? 'red' : 'muted');
+      return `<div class="${cls}">${new Date(t.epoch*1000).toLocaleTimeString()} — ${Number(t.quote).toFixed(2)}</div>`;
+    }).join('');
+    // stats
+    statTrades.textContent = session.trades;
+    statWins.textContent = session.wins;
+    statLosses.textContent = session.losses;
+    statPL.textContent = session.pl.toFixed(2);
+    statPL.style.color = session.pl >= 0 ? '#7ef2a4' : '#ff9b9b';
+  }
+
+  function pushTick(quote, epoch) {
+    const last = ticks.length ? ticks[ticks.length-1].quote : null;
+    const change = last === null ? 0 : (quote - last);
+    ticks.push({ quote, epoch, quote_change: change });
+    if (ticks.length > 50) ticks.shift();
+    refreshUI();
+  }
+
+  // Evaluate strategy whenever we have 50 ticks
+  function evaluateStrategy() {
+    if (ticks.length < 50) return;
+    const quotes = ticks.map(t => t.quote);
+    const first = quotes[0];
+    const last = quotes[quotes.length-1];
+    const min = Math.min(...quotes);
+    const max = Math.max(...quotes);
+
+    // debug
+    log(`Evaluating 50-tick rule — first=${first.toFixed(2)} last=${last.toFixed(2)} min=${min.toFixed(2)} max=${max.toFixed(2)}`);
+
+    if (first === min && last === max) {
+      // trade UP (CALL)
+      triggerTrade('CALL');
+    } else if (first === max && last === min) {
+      // trade DOWN (PUT)
+      triggerTrade('PUT');
+    } else {
+      // no signal
+    }
+  }
+
+  // Trigger a trade: either real (attempt to via Deriv) or demo (simulate)
+  function triggerTrade(contract_type) {
+    // Check stop loss / take profit
+    const stopLoss = parseFloat(stopLossInput.value);
+    const takeProfit = parseFloat(takeProfitInput.value);
+    if (!isNaN(stopLoss) && session.pl <= stopLoss) {
+      log(`Stop loss reached (${session.pl.toFixed(2)} <= ${stopLoss}). Halting further trades.`, 'red');
+      stop();
+      return;
+    }
+    if (!isNaN(takeProfit) && session.pl >= takeProfit) {
+      log(`Take profit reached (${session.pl.toFixed(2)} >= ${takeProfit}). Halting further trades.`, 'green');
+      stop();
+      return;
+    }
+
+    // stake management
+    const stake = Number(currentStake.toFixed(2));
+    const dur = Math.max(10, parseInt(durationInput.value,10));
+    const entry_price = ticks.length ? ticks[ticks.length-1].quote : null;
+    log(`Signal: ${contract_type} — Stake ${stake} — Duration ${dur}s — Entry price ${entry_price !== null ? entry_price.toFixed(2) : 'N/A'}`);
+
+    // Build trade object for pending simulation / tracking
+    const trade = {
+      id: `t${Date.now()}`,
+      contract_type,
+      stake,
+      duration: dur,
+      entry_time: Date.now(),
+      entry_price,
+      status: 'pending',
+      result: null,
+      pnl: 0
+    };
+
+    // Place trade
+    if (modeSelect.value === 'demo') {
+      simulateTrade(trade);
+    } else {
+      placeRealTrade(trade);
+    }
+
+    // increment session trade count now (will update result later)
+    session.trades += 1;
+    refreshUI();
+  }
+
+  // Demo simulation: wait duration seconds, then determine win/lose by comparing price at expiry
+  function simulateTrade(trade) {
+    pendingTrades.push(trade);
+    log(`(DEMO) Placed simulated ${trade.contract_type} trade for ${trade.duration}s with stake ${trade.stake}`);
+
+    // capture index of tick at expiry by waiting for a tick after duration
+    const expiryCheck = () => {
+      // try to use the latest tick as expiry price
+      const expiryPrice = ticks.length ? ticks[ticks.length-1].quote : trade.entry_price;
+      let win = false;
+      if (trade.contract_type === 'CALL') {
+        win = expiryPrice > trade.entry_price;
+      } else {
+        win = expiryPrice < trade.entry_price;
+      }
+      const payout = win ? (trade.stake * 1.8) : 0; // demo payout assumption ~ 80% payout if win (approx)
+      const pnl = win ? (payout - trade.stake) : -trade.stake;
+
+      // finalize
+      trade.status = 'finished';
+      trade.result = win ? 'win' : 'loss';
+      trade.pnl = pnl;
+      finalizeTrade(trade);
+    };
+
+    // schedule expiry check after duration seconds
+    setTimeout(expiryCheck, trade.duration * 1000);
+  }
+
+  // Attempt to place a real trade via Deriv websocket
+  function placeRealTrade(trade) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      log('WebSocket not open — cannot place real trade. Switch to Demo or reconnect.', 'red');
+      return;
+    }
+    const token = tokenInput.value.trim();
+    if (!token) {
+      log('Real mode requires an API token. Set it and reconnect.', 'red');
+      return;
+    }
+
+    // Build a proposal request. NOTE: Deriv websocket v3 expects a "proposal" request.
+    const proposalRequest = {
+      proposal: 1,
+      amount: trade.stake,
+      basis: 'stake',
+      contract_type: trade.contract_type === 'CALL' ? 'CALL' : 'PUT',
+      currency: 'USD',
+      duration: trade.duration,
+      duration_unit: 's',
+      symbol: symbolInput.value || 'R_100'
+    };
+
+    // We will send the proposal; listen for proposal response and then buy automatically.
+    const correlationId = `cor_${Date.now()}`;
+    // Attach a small handler to wait for a matching proposal response
+    const onMessage = (msg) => {
+      try {
+        const data = JSON.parse(msg.data);
+        // handle proposal response
+        if (data.proposal && data.proposal.id && data.echo_req && data.echo_req.proposal === 1) {
+          // immediate buy using proposal id
+          const proposalId = data.proposal.id;
+          const price = data.proposal.display_value || data.proposal.ask_price || data.proposal.bid_price || data.proposal.price;
+          log(`Proposal received (id=${proposalId}) price=${price}`);
+
+          // send buy request
+          const buyReq = {
+            buy: proposalId
+          };
+          ws.send(JSON.stringify(buyReq));
+        }
+        // handle buy response with contract info
+        if (data.buy && data.buy.transaction_id) {
+          // We got buy confirmation. It may include 'contract' info; otherwise we listen for 'contract' updates separately.
+          log(`Buy confirmation: tx_id=${data.buy.transaction_id}`);
+          // store trade as pending; we'll try to determine result later by listening to ticks or 'proposal_open_contract' messages.
+          pendingTrades.push(trade);
+          trade.status = 'placed';
+        }
+        // handle 'contract' / 'proposal_open_contract' messages (you may receive contract result)
+        if (data.proposal_open_contract && data.proposal_open_contract.action === 'sold') {
+          // A contract was sold/ended
+          const pl = data.proposal_open_contract.profit;
+          const is_win = pl > 0;
+          // map to a pending trade if possible (not guaranteed here)
+          trade.status = 'finished';
+          trade.result = is_win ? 'win' : 'loss';
+          trade.pnl = pl;
+          finalizeTrade(trade);
+        }
+      } catch (e) {
+        // ignore parse errors
+      }
+    };
+
+    // add temporary listener
+    const messageListener = (evt) => onMessage(evt);
+    ws.addEventListener('message', messageListener);
+
+    // send proposal request
+    ws.send(JSON.stringify(proposalRequest));
+
+    // Timeout: if nothing happens in 30s remove listener and mark trade pending
+    setTimeout(() => {
+      ws.removeEventListener('message', messageListener);
+      if (trade.status !== 'finished') {
+        // keep trade pending; we may capture result later via other messages.
+        if (trade.status !== 'placed') {
+          log('No immediate buy confirmation received — trade may not have been placed.', 'red');
+        } else {
+          log('Trade placed; waiting for contract to finish.');
+        }
+      }
+    }, 30000);
+  }
+
+  // Finalize trade: update session stats, apply martingale, check SL/TP
+  function finalizeTrade(trade) {
+    if (trade.result === 'win') {
+      session.wins += 1;
+      session.pl += trade.pnl;
+      currentStake = baseStake; // reset stake
+      log(`Trade ${trade.id} WIN — P/L: ${trade.pnl.toFixed(2)} — New session P/L: ${session.pl.toFixed(2)}`, 'green');
+    } else {
+      session.losses += 1;
+      session.pl += trade.pnl; // negative
+      // martingale: increase stake for next trade
+      const mg = parseFloat(martingaleInput.value) || 2.1;
+      currentStake = Math.max(0.01, Number((currentStake * mg).toFixed(2)));
+      log(`Trade ${trade.id} LOSS — P/L: ${trade.pnl.toFixed(2)} — New stake with martingale: ${currentStake.toFixed(2)}`, 'red');
+    }
+    // update trade count and UI
+    refreshUI();
+  }
+
+  // Connect / Disconnect
+  function connect() {
+    if (running) return;
+    mode = modeSelect.value;
+    baseStake = parseFloat(initialStakeInput.value) || 1;
+    currentStake = baseStake;
+    martingale = parseFloat(martingaleInput.value) || 2.1;
+    durationSec = parseInt(durationInput.value,10) || 60;
+    symbol = symbolInput.value || 'R_100';
+
+    // reset session stats
+    session = { trades:0, wins:0, losses:0, pl:0 };
+    ticks = [];
+    pendingTrades = [];
+    refreshUI();
+    log(`Starting in ${mode.toUpperCase()} mode — subscribing to ${symbol}`);
+
+    // open websocket
+    const wsUrl = `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
+    ws = new WebSocket(wsUrl);
+    ws.onopen = () => {
+      running = true;
+      log('WebSocket connected.');
+      // authorize if real mode and token provided
+      if (mode === 'real') {
+        const token = tokenInput.value.trim();
+        if (!token) {
+          log('No API token provided — you must provide token for Real mode.', 'red');
+          // continue but real trading won't work
+        } else {
+          const authReq = { authorize: token };
+          ws.send(JSON.stringify(authReq));
+          log('Sent authorize request. Waiting for authorization.');
+        }
+      }
+      // subscribe to ticks for symbol
+      const tickReq = { ticks: symbol, subscribe: 1 };
+      ws.send(JSON.stringify(tickReq));
+      log(`Subscribed to ticks for ${symbol}`);
+    };
+
+    ws.onmessage = (evt) => {
+      try {
+        const data = JSON.parse(evt.data);
+        // handle ticks
+        if (data.tick) {
+          const q = parseFloat(data.tick.quote);
+          const epoch = data.tick.epoch;
+          pushTick(q, epoch);
+          // every tick after push, try evaluate
+          evaluateStrategy();
+        }
+        // handle authorization success/fail messages
+        if (data.authorize) {
+          log('Authorization success (real mode).');
+        }
+        if (data.error) {
+          log('Error: ' + JSON.stringify(data.error), 'red');
+        }
+        // handle open contract / contract updates (if real trading)
+        if (data.proposal_open_contract) {
+          // contract updates (you might map to pending trades if more info available)
+          log('Contract update: ' + JSON.stringify({
+            id: data.proposal_open_contract.contract_id,
+            status: data.proposal_open_contract.is_sold ? 'sold' : 'open',
+            payout: data.proposal_open_contract.payout,
+            profit: data.proposal_open_contract.profit
+          }));
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    ws.onclose = () => {
+      running = false;
+      log('WebSocket closed.');
+    };
+
+    ws.onerror = (e) => {
+      log('WebSocket error: ' + JSON.stringify(e), 'red');
+    };
+  }
+
+  function stop() {
+    if (ws) {
+      try { ws.close(); } catch(e){/*ignore*/ }
+    }
+    running = false;
+    log('Stopped.');
+  }
+
+  // Button events
+  connectBtn.addEventListener('click', () => {
+    if (!running) connect();
+    else log('Already running.');
+  });
+  stopBtn.addEventListener('click', stop);
+
+  // live update of inputs into state
+  initialStakeInput.addEventListener('change', () => {
+    baseStake = parseFloat(initialStakeInput.value) || baseStake;
+    if (!running) currentStake = baseStake;
+  });
+  martingaleInput.addEventListener('change', () => { martingale = parseFloat(martingaleInput.value) || martingale; });
+  durationInput.addEventListener('change', () => { durationSec = parseInt(durationInput.value,10) || durationSec; });
+  modeSelect.addEventListener('change', () => { mode = modeSelect.value; });
+
+  // On page unload, close ws
+  window.addEventListener('beforeunload', () => {
+    if (ws) ws.close();
+  });
+
+  // initial UI refresh
+  refreshUI();
+  log('Ready. Use Demo mode to test first.');
+})();
+</script>
+</body>
 </html>
