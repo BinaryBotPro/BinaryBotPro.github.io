@@ -620,9 +620,9 @@ if (startAnalyzing == true) {
 
 
     ticks.push(price);
-    if (ticks.length > 30) ticks.shift(); // Keep last 50 ticks
+    if (ticks.length > 50) ticks.shift(); // Keep last 50 ticks
 
-    if (ticks.length === 30 && !contractInProgress) {
+    if (ticks.length === 50 && !contractInProgress) {
         const support = Math.min(...ticks);
         const resistance = Math.max(...ticks);
 
@@ -848,4 +848,5 @@ if (startAnalyzing == true) {
 </body>
 
 </html>
+
 
