@@ -620,16 +620,16 @@ if (startAnalyzing == true) {
 
 
     ticks.push(price);
-    if (ticks.length > 20) ticks.shift(); // Keep last 50 ticks
+    if (ticks.length > 30) ticks.shift(); // Keep last 50 ticks
 
-    if (ticks.length === 20 && !contractInProgress) {
+    if (ticks.length === 30 && !contractInProgress) {
         const support = Math.min(...ticks);
         const resistance = Math.max(...ticks);
 
         if (ticks[0] == support && ticks[ticks.length - 1] == resistance) {
-            buyContract("CALL", "R_100", initialStake, "", "10");
+            buyContract("CALL", "R_100", initialStake, "", "1");
         } else if (ticks[0] == resistance && ticks[ticks.length - 1] == support) {
-            buyContract("PUT", "R_100", initialStake, "", "10");
+            buyContract("PUT", "R_100", initialStake, "", "1");
         }
     }
 
@@ -736,7 +736,7 @@ if (startAnalyzing == true) {
                             // barrier: barrier,
                             currency: "USD",
                             duration: duration,
-                            duration_unit: "t",
+                            duration_unit: "m",
                             // growth_rate: 0.01,
                             // limit_order: {
                             //     take_profit: tp,
@@ -848,3 +848,4 @@ if (startAnalyzing == true) {
 </body>
 
 </html>
+
