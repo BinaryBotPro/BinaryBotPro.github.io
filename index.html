@@ -646,19 +646,20 @@ input {
         <img src="header.webp" width="100%" />
     </div>
 
+<div>
     <div class="box mb-base">
         <div class="header-box">
             <h2><i class="ri-key-2-line fs-i"></i> Deriv API Connection</h2>
         </div>
 
         <label for="api-token">API Token</label>
-        <input id="api-token" type="password" placeholder="Enter your API token" value="XFOzhqtHz0gI04U" />
-        <button class="primary" id="connect">Connect to Deriv</button>
+        <input id="api-token" type="password" placeholder="Enter your API token" value="" />
+        <button class="primary custom-btn btn-animation" id="connect">Connect to Deriv</button>
 
         <div class="description">
             <p>To get your API token:</p>
             <ol>
-                <li>Log in to your <a href="https://app.deriv.com" target="_blank" rel="noopener noreferrer"
+                <li>Log in to your <a href="https://record.binary.com/_kHR1b8k0muStBVQhPcxVXGNd7ZgqdRLk/1/" target="_blank" rel="noopener noreferrer"
                         class="text-emerald-400 hover:underline">Deriv account</a></li>
                 <li>Go to Settings &gt; API Token</li>
                 <li>Create a new token with "Trade" permission</li>
@@ -696,20 +697,34 @@ input {
         </div>
 
         <label for="api-token">Select</label>
-        <select name="" id="strategy">
+        <select name="" id="strategy" disabled>
             <option value="RiseFall">HYIP</option>
         </select>
-        <button class="primary" id="start" disabled>Start to Trade</button>
-    </div>
+      	<div class="container-box mt-base">
+          	<div class="box flex-1 p-0">
+          		<label for="stake">Stake <span class="txt-small">(Minimum stake: 0.35$)</span></label>
+            	<input type="decimal" min="0.35" step="0.01" id="stake" placeholder="Minimum stake 0.35$" value="2.1" oninput="updateInput(this)" disabled />
+          	</div>
+          	<div class="box flex-1 p-0">
+                <label for="martingale">Martingale <span class="txt-small">(No martingale = 1)</span></label>
+        		<input type="decimal" min="1" step="0.01" id="martingale" placeholder="No martingale is set to 1" value="2" oninput="updateInput(this)" disabled />
+          	</div>
+       
+      
+      	</div>
+       
+        <button class="primary custom-btn btn-animation" id="start" disabled>Start to Trade</button>
+      
 
-    <div class="box mb-base">
+    </div>
+  
+    <div class="box">
         <div class="header-box">
             <h2><i class="ri-bar-chart-box-line fs-i"></i> Trade Results</h2>
             <div></div>
         </div>
 
-        <div class="container-box">
-
+        <div class="container-box mb-base">
             <div class="box flex-1 bd-box">
                 <div class="header-box">
                     <h3>Trades</h3>
@@ -718,9 +733,32 @@ input {
             </div>
             <div class="box flex-1 bd-box">
                 <div class="header-box">
+                    <h3>Win : Loss</h3>
+                </div>
+                <span id="winloss">—</span>
+            </div>
+            <div class="box flex-1 bd-box">
+                <div class="header-box">
                     <h3>Win Rate</h3>
                 </div>
                 <span id="winrate">—</span>
+            </div>
+        </div>
+      
+      
+      	<div class="container-box mb-base">
+
+            <div class="box flex-1 bd-box">
+                <div class="header-box">
+                    <h3>Low.Balance</h3>
+                </div>
+                <span id="lowest-session">—</span>
+            </div>
+            <div class="box flex-1 bd-box">
+                <div class="header-box">
+                    <h3>Max.DD</h3>
+                </div>
+                <span id="max-dd">—</span>
             </div>
             <div class="box flex-1 bd-box">
                 <div class="header-box">
@@ -729,8 +767,21 @@ input {
                 <span id="total-profit">—</span>
             </div>
         </div>
+      
+      	<div>
+            <!-- SmartAutoTrading -->
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-3508010468806898"
+                 data-ad-slot="2861229331"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
 
-        <div class="status-box"><strong>Status:</strong> <span id="status">Waiting...</span></div>
+        <!-- <div class="status-box"><strong>Status:</strong> <span id="status">Waiting...</span></div> -->
         <div class="container-box">
             <table id="results-table">
                 <thead>
@@ -749,6 +800,23 @@ input {
         </div>
     </div>
 
+
+<!-- Modal -->
+<div id="myModal" class="modal">
+  	<div class="modal-content">
+      	<div>
+        	<!-- StartBot -->
+        	<ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-3508010468806898"
+                 data-ad-slot="8157318852"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+        </div>
+    	<button id="closeBtn" class="btn">Close</button>
+      	<p id="countdownTxt">Closing available in <span id="count">5</span> seconds.</p>
+  	</div>
+</div>
 
 
 
@@ -1369,6 +1437,7 @@ input {
 </body>
 
 </html>
+
 
 
 
