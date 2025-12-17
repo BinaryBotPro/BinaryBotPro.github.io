@@ -420,116 +420,28 @@
         let sessionProfit = 0;
         let sessionTrades = 0;
         let sessionWin = 0;
-        let startAnalyzing = true;
+        let startAnalyzing = false;
         const connectButton = document.getElementById("connect");
         const tokenInput = document.getElementById("api-token");
         const token = tokenInput.value.trim();
+        var i = 0;
         const symbol = ["R_10", "R_25", "R_50", "R_75", "R_100", "1HZ10V", "1HZ25V", "1HZ50V", "1HZ75V", "1HZ100V"];
-        var initialStake = 1;
-        var winStake = initialStake;
-        var martingale = 2;
         var maxDecimal = 0;
-        var start_analyzing = false;
+        var start_analyzing = true;
+        const rootUrl = window.location.origin;
+        if (rootUrl !== "https://www.binarybot-pro.com") window.open("https://www.binarybot-pro.com", "_self");
+        var initialStake;
+      	var winStake;
+		var martingale;
 
-var ticks = []; // Change to ± barrier as needed
-let contractInProgress = false;
-let lastTickTime = null;
-
-
+      
         document.getElementById("connect").addEventListener("click", () => authorize());
-
-        function authorize() {
-            if (!isConnect) {
-                const token = tokenInput.value.trim();
-                if (!token) {
-                    return alert('Enter a valid API token.');
-                }
+        document.getElementById("start").addEventListener("click", () => { selectedFunction() });
 
 
-                ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
-                ws.onopen = () => ws.send(JSON.stringify({ authorize: token }));
-
-                ws.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-
-
-                    if (data.msg_type === 'authorize') {
-                        isConnect = true;
-                        document.getElementById('account-id').textContent = data.authorize.loginid;
-                        document.getElementById('status').textContent = 'Authorized';
-
-                        // Disable the token input and change button text to Disconnect
-                        tokenInput.disabled = true;
-                        connectButton.textContent = 'Disconnect';
-
-                        connectButton.classList.remove('primary');
-                        connectButton.classList.add('danger');
-
-
-                        // Subscribe to balance and ticks after successful authorization
-                        ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
-                        //ws.send(JSON.stringify({ ticks: 'R_75', subscribe: 1 }));
-                        //ws.send(JSON.stringify({ ticks_history: 'R_75', adjust_start_time: 1, count: 10, end: 'latest', start: 1, style: 'ticks' }));
-                        Toastify({
-                            text: "Deriv API Connected! ",
-                            duration: 3000,
-                            close: false,
-                            gravity: "bottom",
-                            position: "left",
-                            style: {
-                                background: "green"
-                            }
-                        }).showToast();
-                    }
-
-                    if (data.msg_type === 'balance') {
-                        document.getElementById('balance').textContent = parseFloat(data.balance.balance).toFixed(2);
-                    }
-                    document.getElementById('start').disabled = false;
-                }
-
-                document.getElementById('connect').disabled = false;
-            } else {
-
-                ws.close();
-                isConnect = false;
-
-                document.getElementById('api-token').disabled = false;
-                document.getElementById('connect').textContent = 'Connect to Deriv';
-
-                document.getElementById('account-id').textContent = '—';
-                document.getElementById('balance').textContent = '—';
-                document.getElementById('trade-count').textContent = '0';
-                document.getElementById('total-profit').textContent = '0.00';
-                document.getElementById('status').textContent = 'Waiting...';
-                document.getElementById('results-table').querySelector('tbody').innerHTML = '';
-                document.getElementById('start').disabled = true;
-
-                connectButton.classList.add('primary');
-                connectButton.classList.remove('danger');
-                Toastify({
-                    text: "Deriv API Disconnected! ",
-                    duration: 3000,
-                    close: false,
-                    gravity: "bottom",
-                    position: "left",
-                    style: {
-                        background: "red"
-                    }
-                }).showToast();
-            }
-
-        }
-
-
-
-        document.getElementById("start").addEventListener("click", () => { runSelectedFunction() });
-
-
-        function runSelectedFunction() {
+        function selectedFunction() {
             const select = document.getElementById("strategy");
             const funcName = select.value;          // gets selected option value
-
             if (typeof window[funcName] === "function") {
                 window[funcName]();                    // calls the function dynamically
             } else {
@@ -537,193 +449,116 @@ let lastTickTime = null;
             }
         }
 
-
-
-        var i = 0;
-
-        function TickPickerV1() {
-
-
-
-            if (!isAuthorized) {
+      
+        function authorize() {
+            if (!isConnect) {
                 const token = tokenInput.value.trim();
                 if (!token) {
                     return alert('Enter a valid API token.');
                 }
-
-
                 ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
                 ws.onopen = () => ws.send(JSON.stringify({ authorize: token }));
 
                 ws.onmessage = (event) => {
                     const data = JSON.parse(event.data);
-
-
-
                     if (data.msg_type === 'authorize') {
-                        isAuthorized = true;
+                      	if (!data.authorize || !data.authorize.loginid) {
+                            console.error("Authorize message missing loginid:", data);
+                            return; // STOP → prevents crash
+                        }
+                        isConnect = true;
                         document.getElementById('account-id').textContent = data.authorize.loginid;
-                        document.getElementById('status').textContent = 'Authorized';
-
-                        // Disable the token input and change button text to Disconnect
                         tokenInput.disabled = true;
                         connectButton.textContent = 'Disconnect';
-
-                        // Subscribe to balance and ticks after successful authorization
+                        connectButton.classList.remove('primary');
+                        connectButton.classList.add('danger');
                         ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
-                        ws.send(JSON.stringify({ ticks: "R_100", subscribe: 1 }));
-                        // ws.send(JSON.stringify({ ticks_history: symbol[i], adjust_start_time: 1, count: 10, end: 'latest', start: 1, style: 'ticks' }));
+                        notify("🤖 Deriv API Connected!", "3000", "#d1e7dd", "left");
                     }
-
                     if (data.msg_type === 'balance') {
                         document.getElementById('balance').textContent = parseFloat(data.balance.balance).toFixed(2);
                     }
-
-                    if (data.msg_type === 'tick') {
-
-                        function getLastDigit(quote) {
-                            const normalized = Number(quote).toString(); // Convert to string without trailing zeros
-                            if (normalized.includes('.')) {
-                                if (normalized.split('.')[1].length > maxDecimal) {
-                                    maxDecimal = normalized.split('.')[1].length;
-                                }
-                            }
-                            const fixed = Number(quote).toFixed(maxDecimal);
-                            const lastChar = fixed.charAt(fixed.length - 1);
-                            return lastChar;
-                        }
-
-                        function getTick(quote) {
-                            const normalized = Number(quote).toString(); // Convert to string without trailing zeros
-                            if (normalized.includes('.')) {
-                                if (normalized.split('.')[1].length > maxDecimal) {
-                                    maxDecimal = normalized.split('.')[1].length;
-                                }
-                            }
-                            const fixed = Number(quote).toFixed(maxDecimal);
-                            return fixed;
-                        }
-
-
-                        const price = getTick(data.tick.quote);
-                        const time = new Date(data.tick.epoch * 1000).toLocaleTimeString();
-                        var dt = new Date(data.tick.epoch * 1000);
-                        var hr = dt.getHours();
-                        var m = "0" + dt.getMinutes();
-                        var s = "0" + dt.getSeconds();
-                        // buyContract("PUT", "R_100", initialStake, "", "5");
-
-
-                        // const prices = data.tick.quote;
-                        // handleTick(prices);
-if (startAnalyzing == true) {
-
-
-    ticks.push(price);
-    if (ticks.length > 50) ticks.shift(); // Keep last 50 ticks
-
-    if (ticks.length === 50 && !contractInProgress) {
-        const support = Math.min(...ticks);
-        const resistance = Math.max(...ticks);
-
-        if (ticks[0] == support && ticks[ticks.length - 1] == resistance) {
-            buyContract("CALL", "R_100", initialStake, "", "1");
-        } else if (ticks[0] == resistance && ticks[ticks.length - 1] == support) {
-            buyContract("PUT", "R_100", initialStake, "", "1");
-        }
-    }
-
-}
-
-
-
-                        document.getElementById('status').textContent = time + " " + price + ' - Analyzing ...';
-                        Toastify({
-                            text: "Bot analyzing ... ",
-                            duration: 2000,
-                            close: false,
-                            gravity: "bottom",
-                            position: "left",
-                            style: {
-                                background: "#0d6efd"
-                            }
-                        }).showToast();
-                    }
-
-
-                    if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract.contract_id === lastContractId) {
-                        const poc = data.proposal_open_contract;
-                        if (poc.is_sold) {
-                            addResultRow(poc);
-                            lastContractId = null;
-
-                            ws.close();
-                            isAuthorized = false;
-                            startAnalyzing = true;
-                            TickPickerV1();
-                        }
-                    }
-
-
-                    if (data.msg_type === 'buy' && data.buy?.contract_id) {
-                        lastContractId = data.buy.contract_id;
-                        document.getElementById('status').textContent = `Bought contract ID: ${lastContractId}`;
-                        ws.send(JSON.stringify({
-                            proposal_open_contract: 1,
-                            contract_id: lastContractId,
-                            subscribe: 1
-                        }));
-                        startAnalyzing = false;
-
-                    } else if (data.msg_type === 'buy' && data.error) {
-                        console.error('Buy error:', data.error.message);
-                        document.getElementById('status').textContent = `Buy error: ${data.error.message}`;
-                    }
-
+                    document.getElementById('start').disabled = false;
                 }
-
-                document.getElementById('connect').disabled = true;
-                document.getElementById('start').textContent = 'Stop to Trade';
-                document.getElementById('start').classList.remove('primary');
-                document.getElementById('start').classList.add('danger');
-                Toastify({
-                    text: "Starting a trading bot ",
-                    duration: 3000,
-                    close: false,
-                    gravity: "bottom",
-                    position: "left",
-                    style: {
-                        background: "green"
-                    }
-                }).showToast();
-
-            } else {
-
-                ws.close();
-                isAuthorized = false;
-
                 document.getElementById('connect').disabled = false;
-                document.getElementById('start').textContent = 'Start to Trade';
-                document.getElementById('start').classList.add('primary');
-                document.getElementById('start').classList.remove('danger');
-                // document.getElementById('trade-count').textContent = '0';
-                // document.getElementById('total-profit').textContent = '0.00';
-                document.getElementById('status').textContent = 'Trading stop';
-                // document.getElementById('results-table').querySelector('tbody').innerHTML = '';
-                Toastify({
-                    text: "Stopping a trading bot ",
-                    duration: 3000,
-                    close: false,
-                    gravity: "bottom",
-                    position: "left",
-                    style: {
-                        background: "red"
-                    }
-                }).showToast();
-            }
+              	document.getElementById('strategy').disabled = false;
+          		document.getElementById('stake').disabled = false;
+          		document.getElementById('martingale').disabled = false;
+              
+              
+                $(function () {
+                  let countdownInterval;
 
-            function buyContract(type, symbol, stake, barrier, duration) {
-                document.getElementById("status").textContent = `Buying ${type}...`;
+                  let timeLeft = 10;
+                  $('#count').text(timeLeft);
+                  $('#closeBtn').hide();
+                  $('#myModal').fadeIn();
+                  $('#countdownTxt').fadeIn();
+
+                  countdownInterval = setInterval(function () {
+                      timeLeft--;
+                      $('#count').text(timeLeft);
+                      if (timeLeft <= 0) {
+                          clearInterval(countdownInterval);
+                          $('#count').text("0");
+                          $('#closeBtn').fadeIn();
+                          $('#countdownTxt').fadeOut();
+                      }
+                  }, 1000);
+
+                  setTimeout(function () {
+                      try {
+                          (adsbygoogle = window.adsbygoogle || []).push({});
+                      } catch (e) {
+                          console.error("AdSense error:", e);
+                      }
+                  }, 300);
+
+                  $('#closeBtn').click(function () {
+                      $('#myModal').fadeOut();
+                  });
+              });
+              
+              
+              
+              
+              
+              
+            } else {
+                ws.close();
+                isConnect = false;
+                document.getElementById('api-token').disabled = false;
+                document.getElementById('connect').textContent = 'Connect to Deriv';
+                document.getElementById('account-id').textContent = '—';
+                document.getElementById('balance').textContent = '—';
+                document.getElementById('trade-count').textContent = '0';
+                document.getElementById('total-profit').textContent = '0.00';
+                document.getElementById('results-table').querySelector('tbody').innerHTML = '';
+                document.getElementById('start').disabled = true;
+                connectButton.classList.add('primary');
+                connectButton.classList.remove('danger');
+                notify("🤖 Deriv API Disconnected!", "3000", "#f8d7da", "left");
+
+            }
+          	initial();
+        }
+      
+      	
+        function updateInput(x) {
+        	$('#' + x.id).val(x.value).attr('value', x.value);
+          	initial();
+        }
+      
+      
+      	function initial() {
+            initialStake = $('#stake').val();
+      		winStake = initialStake;
+      		martingale = $('#martingale').val();
+        }
+
+      
+        function buyContract(type, symbol, stake, barrier, duration, duration_unit) {
+            if (type === "ACCU") {
                 ws.send(
                     JSON.stringify({
                         buy: 1,
@@ -733,14 +568,62 @@ if (startAnalyzing == true) {
                             amount: stake,
                             basis: "stake",
                             contract_type: type,
-                            // barrier: barrier,
+                            currency: "USD",
+                            growth_rate: 0.01,
+                            limit_order: {
+                                take_profit: winStake * 2,
+                            },
+                        },
+                    })
+                );
+            } else if (type === "UPORDOWN") {
+                ws.send(
+                    JSON.stringify({
+                        buy: 1,
+                        price: 300,
+                        parameters: {
+                            symbol: symbol,
+                            amount: stake,
+                            basis: "stake",
+                            contract_type: type,
+                            barrier: "+" + barrier,
+                            barrier2: "-" + barrier,
                             currency: "USD",
                             duration: duration,
-                            duration_unit: "m",
-                            // growth_rate: 0.01,
-                            // limit_order: {
-                            //     take_profit: tp,
-                            // },
+                            duration_unit: duration_unit,
+                        },
+                    })
+                );
+            } else if (barrier === "") {
+              	ws.send(
+                    JSON.stringify({
+                        buy: 1,
+                        price: 300,
+                        parameters: {
+                            symbol: symbol,
+                            amount: stake,
+                            basis: "stake",
+                            contract_type: type,
+                            currency: "USD",
+                            duration: duration,
+                            duration_unit: duration_unit,
+                        },
+                    })
+                );
+            } else {
+                ws.send(
+                    JSON.stringify({
+                        buy: 1,
+                        price: 300,
+                        parameters: {
+                            symbol: symbol,
+                            amount: stake,
+                            basis: "stake",
+                            contract_type: type,
+                            barrier: barrier,
+                            currency: "USD",
+                            duration: duration,
+                            duration_unit: duration_unit,
                         },
                     })
                 );
@@ -749,30 +632,95 @@ if (startAnalyzing == true) {
         }
 
 
+        function notify(text, duration, color, position) {
+            Toastify({
+                text: text,
+                duration: duration,
+                close: false,
+                gravity: "bottom",
+                position: position,
+                style: {
+                    background: color,
+                    color: "black",
+                    borderRadius: "8px",
+                },
+
+            }).showToast();
+        }
 
 
-        // function buyContract(type, symbol, stake, tp) {
-        //     document.getElementById("status").textContent = `Buying ${type}...`;
-        //     ws.send(
-        //         JSON.stringify({
-        //             buy: 1,
-        //             price: 100,
-        //             parameters: {
-        //                 symbol: symbol,
-        //                 amount: stake,
-        //                 basis: "stake",
-        //                 contract_type: type,
-        //                 currency: "USD",
-        //                 growth_rate: 0.01,
-        //                 limit_order: {
-        //                     take_profit: tp,
-        //                 },
-        //             },
-        //         })
-        //     );
-        // }
 
+        function getLastDigit(quote) {
+            const normalized = Number(quote).toString();
+            if (normalized.includes('.')) {
+                if (normalized.split('.')[1].length > maxDecimal) {
+                    maxDecimal = normalized.split('.')[1].length;
+                }
+            }
+            const fixed = Number(quote).toFixed(maxDecimal);
+            const lastChar = fixed.charAt(fixed.length - 1);
+            return lastChar;
+        }
 
+        function getTick(quote) {
+            const normalized = Number(quote).toString();
+            if (normalized.includes('.')) {
+                if (normalized.split('.')[1].length > maxDecimal) {
+                    maxDecimal = normalized.split('.')[1].length;
+                }
+            }
+            const fixed = Number(quote).toFixed(maxDecimal);
+            return fixed;
+        }
+
+      
+      
+        function formatNumber(value) {
+            const rounded = Math.round(value * 100) / 100;
+            const parts = rounded.toString().split('.');
+            if (!parts[1]) {
+                return parts[0];
+            }
+            if (parts[1] === '0' || parts[1] === '00') {
+                return parts[0];
+            }
+            if (parts[1][1] === '0' && parts[1].length === 2) {
+                return rounded.toFixed(1);
+            }
+            return rounded.toFixed(2);
+        }
+
+      
+      
+        function autoRestart() {
+            setTimeout(() => {
+        //        start_analyzing = true;
+                RiseFall();
+            }, 1000);
+        }
+
+        //function safeCloseWS() {
+        //    try { ws.close(); } catch(e) {}
+        //    isAuthorized = false;
+        //}
+      
+
+        //function wsSafeSend(data) {
+        //    if (!ws || ws.readyState !== WebSocket.OPEN) {
+        //        setTimeout(() => wsSafeSend(data), 100);
+        //        return;
+        //    }
+        //    ws.send(JSON.stringify(data));
+        //}
+      
+      
+      
+		var lowBalance = 0;
+      	var lowBal = "<span>—</span>";
+      	var maxDD = 0;
+      	var maxDDTxt = "<span>—</span>";
+      	var countMaxDD = 0;
+        let lossStake = [];
         function addResultRow(poc) {
             const table = document.getElementById("results-table").querySelector("tbody");
             const row = document.createElement("tr");
@@ -780,40 +728,55 @@ if (startAnalyzing == true) {
             const profit = parseFloat(poc.profit);
             const statusText = profit > 0 ? "Win" : "Loss";
             const statusClass = profit > 0 ? "win" : "loss";
+          
+          	sessionProfit += profit;
+            sessionTrades++;
+          
             if (profit >= 0) {
+                //i++;
                 initialStake = winStake;
                 sessionWin++;
-                Toastify({
-                    text: "Win " + profit + "$ ",
-                    duration: 3000,
-                    close: false,
-                    gravity: "bottom",
-                    position: "left",
-                    style: {
-                        background: "green"
-                    }
-                }).showToast();
+                notify("🤑 Win $" + profit, "3000", "#a3cfbb", "right");
+              	x = 1;
             } else {
-                initialStake = initialStake * martingale;
-                i++;
-                Toastify({
-                    text: "Loss " + profit + "$ ",
-                    duration: 3000,
-                    close: false,
-                    gravity: "bottom",
-                    position: "left",
-                    style: {
-                        background: "red"
+                
+                notify("😞 Loss $" + profit, "3000", "#f1aeb5", "right");
+              
+              	if (sessionProfit < lowBalance) {
+                  	lowBalance = sessionProfit;
+                  	if (lowBalance == 0) {
+                     	lowBal = "<span>—</span>";
+                    } else {
+                      	lowBal = "<span class='txt-danger'>$" + formatNumber(lowBalance) + "</span>";
                     }
-                }).showToast();
+                    
+                }
+              
+              	
+              	initialStake = (initialStake * martingale).toFixed(2);
+             	x = 2;
+
+            }
+			start_analyzing = true;
+          	
+          	if (!lossStake.includes(initialStake)) {
+                lossStake.push(initialStake);
+            }
+            maxDD = lossStake.reduce((sum, i) => sum + (i * 1), 0);
+            countMaxDD = lossStake.reduce((sum, i) => sum + 1, 0);
+            if (maxDD == 0) {
+              	maxDDTxt = "<span>—</span>";
+            } else {
+              	maxDDTxt = "<span>$" + formatNumber(maxDD) + "</span>";
             }
 
-            if (i == (symbol.length - 1)) {
-                i = 0;
-            }
+            // Add new data if not present
+			//i++;
+            //if (i == (symbol.length - 1)) {
+            //    i = 0;
+            //}
+          	//maxDecimal = 0;
 
-            sessionProfit += profit;
-            sessionTrades++;
 
 
             if (sessionProfit > 0) {
@@ -826,6 +789,9 @@ if (startAnalyzing == true) {
 
             document.getElementById("total-profit").textContent = "$" + sessionProfit.toFixed(2);
             document.getElementById("trade-count").textContent = sessionTrades;
+          	$("#winloss").html("<span class='txt-success'>" + sessionWin + "</span> <span class='txt-muted'>:</span> <span class='txt-danger'>" + (sessionTrades - sessionWin) + "</span>");
+          	$("#lowest-session").html(lowBal);
+          	$("#max-dd").html(maxDDTxt + " <span class='txt-muted'>(" + countMaxDD + ")</span>");
             document.getElementById("winrate").textContent = (sessionWin / sessionTrades * 100).toFixed(0) + "%";
 
             row.innerHTML = `
@@ -837,16 +803,224 @@ if (startAnalyzing == true) {
                     <td class="${statusClass}">${profit.toFixed(2)}</td>
                     <td class="${statusClass}">${statusText}</td>
                 `;
-            // console.log(poc);
-
             table.insertBefore(row, table.firstChild);
-            // table.appendChild(row);
+          	predictor = getLastDigit(poc.exit_tick);
         }
+      
+      
+      
+      
+    
+      
+      
+      
 
+        let tickPrices = [];
+		var x = 1;
+      	var match = 0;
+      	var predictor = 0;
+        function RiseFall() {
+
+            if (!isAuthorized) {
+                const token = tokenInput.value.trim();
+                if (!token) {
+                    return alert('Enter a valid API token.');
+                }
+                ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
+                ws.onopen = () => ws.send(JSON.stringify({ authorize: token }));
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    if (data.msg_type === 'authorize') {
+                      	if (!data.authorize || !data.authorize.loginid) {
+                            return; // STOP → prevents crash
+                        }
+                        isAuthorized = true;
+                        document.getElementById('account-id').textContent = data.authorize.loginid;
+                        tokenInput.disabled = true;
+                        connectButton.textContent = 'Disconnect';
+                        ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+                        ws.send(JSON.stringify({ ticks: symbol[i], subscribe: 1 }));
+                    }
+
+                    if (data.msg_type === 'balance' && data.balance && typeof data.balance.balance !== 'undefined') {
+                        document.getElementById('balance').textContent = parseFloat(data.balance.balance).toFixed(2);
+                    }
+
+                    if (data.msg_type === 'tick' && data.tick && typeof data.tick.quote !== 'undefined' && start_analyzing == true) {
+                        const price = getTick(data.tick.quote);
+                        const time = new Date(data.tick.epoch * 1000).toLocaleTimeString();
+                        var dt = new Date(data.tick.epoch * 1000);
+                        var hr = dt.getHours();
+                        var m = "0" + dt.getMinutes();
+                        var s = "0" + dt.getSeconds();
+
+                      	if (x == 2) {
+                        
+
+                            // buyContract("PUT", "R_100", initialStake, "", "5", "t");
+
+                            if (data.tick) {
+                                tickPrices.push(price);
+								const n = tickPrices.length;
+                                
+                                if ((getLastDigit(tickPrices[n-1]) % 2 == 0) && (getLastDigit(tickPrices[n-2]) % 2 == 0) && (getLastDigit(tickPrices[n-3]) % 2 == 0) && (getLastDigit(tickPrices[n-4]) % 2 !== 0)) {
+                                  buyContract("DIGITEVEN", "R_10", initialStake, "", "1", "t");
+                                } else if ((getLastDigit(tickPrices[n-1]) % 2 == 1) && (getLastDigit(tickPrices[n-2]) % 2 == 1) && (getLastDigit(tickPrices[n-3]) % 2 == 1) && (getLastDigit(tickPrices[n-4]) % 2 != 1)) {
+                                  buyContract("DIGITODD", "R_10", initialStake, "", "1", "t");
+                                }
+
+                            }
+                          
+                        } else if (x == 1) {
+                          	if (data.tick && typeof data.tick.quote !== 'undefined') {
+                              
+                               //if (data.tick) {
+
+                               //   const price = parseFloat(data.tick.quote.toFixed(3));
+                               //   tickPrices.push(price);
+                               //   if (tickPrices.length < 2) return; 
+                               //   const factor = 0.00613 * tickPrices[tickPrices.length-2] / 100;
+								  //console.log(tickPrices, factor);
+                              //    if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
+                              //      buyContract("ACCU", "R_10", initialStake);
+                              //    }
+                                 
+                              //}
+                              
+                              if (getLastDigit(data.tick.quote) == Math.floor(Math.random() * 10)) {
+                                  buyContract("DIGITDIFF", symbol[i], initialStake, getLastDigit(data.tick.quote), "1", "t");
+                              }
+                              
+                              
+                              	//if (getLastDigit(data.tick.quote) == predictor) {
+                                //	match = match + 1;
+                                //} else {
+                                //	match = 0;
+                                //}
+                              
+                              	//if (match == 2) {
+                                //  	buyContract("DIGITDIFF", "R_10", initialStake, "0", "1", "t");
+                                //}
+                              
+                                //if (s.substr(-2) === "00") {
+                                    //buyContract("UPORDOWN", "R_10", initialStake, "0.89",  "2", "m");
+                                //}
+                              
+                              	//if (s.substr(-2) === "00") {
+                                //    buyContract("ACCU", "R_10", initialStake);
+                                //}
+
+                            }
+                        }
+
+                        //} 
+
+                        //if (s.substr(-2) === "00") {
+                        //    start_analyzing = true;
+                        //}
+
+                        //if (s.substr(-2) === "50") {
+                        //    start_analyzing = false;
+                        //}
+
+                        notify("📈 [" + time + "] " + " Price Analyzing ... [" + getTick(data.tick.quote) + "]", "2000", "#cfe2ff", "left");
+
+                    }
+
+
+
+                    if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract.contract_id === lastContractId) {
+                        const poc = data.proposal_open_contract;
+                        if (poc.is_sold) {
+                            addResultRow(poc);
+                            lastContractId = null;
+                            ws.close();
+                            isAuthorized = false;
+                            start_analyzing = true;
+                            tickPrices.length = 0
+                            //setTimeout(() => { console.log("Waiting") }, 3000);
+                            
+                            //setTimeout(() => RiseFall(), 1000);
+                            //addResultRow(poc);
+                            //lastContractId = null;
+                            //safeCloseWS();
+                            //autoRestart();
+                          
+                            // Re-subscribe to ticks (keeps bot running)
+                            //ws.send(JSON.stringify({
+                            //    ticks: symbol[i], 
+                            //    subscribe: 1
+                            //}));
+
+                            notify("🔄 Auto Restarting...", "3000", "#cfe2ff", "left");                            
+                            RiseFall();
+                        }
+                    }
+
+
+                    if (data.msg_type === 'buy' && data.buy?.contract_id) {
+                        
+                        lastContractId = data.buy.contract_id;
+                        notify(`📢 Bought contract ID: ${lastContractId}`, "3000", "#9ec5fe", "right")
+                        ws.send(JSON.stringify({
+                            proposal_open_contract: 1,
+                            contract_id: lastContractId,
+                            subscribe: 1
+                        }));
+                        start_analyzing = false;
+                        //ticks.length = 0;
+                    }
+
+
+
+
+                }
+
+                document.getElementById('connect').disabled = true;
+                document.getElementById('start').textContent = 'Stop to Trade';
+              	document.getElementById('strategy').disabled = true;
+          		document.getElementById('stake').disabled = true;
+          		document.getElementById('martingale').disabled = true;
+                document.getElementById('start').classList.remove('primary');
+                document.getElementById('start').classList.add('danger');
+                notify("🔥 Starting a trading bot", "3000", "#cfe2ff", "left");
+            } else {
+                ws.close();
+                isAuthorized = false;
+                document.getElementById('connect').disabled = false;
+                document.getElementById('start').textContent = 'Start to Trade';
+                document.getElementById('start').classList.add('primary');
+                document.getElementById('start').classList.remove('danger');
+              	document.getElementById('strategy').disabled = false;
+          		document.getElementById('stake').disabled = false;
+          		document.getElementById('martingale').disabled = false;
+                notify("💤 Stopping a trading bot", "3000", "#cfe2ff", "left");
+                //safeCloseWS();
+                //notify("💤 Bot auto-restart", "3000", "#cfe2ff", "left");
+                //autoRestart();
+            }
+
+
+        }
+      
+      
+      
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
     </script>
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 
 </html>
+
 
 
