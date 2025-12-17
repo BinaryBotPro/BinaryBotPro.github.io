@@ -1172,7 +1172,7 @@ input {
       	var predictor = 0;
         function RiseFall() {
 
-           // if (!isAuthorized) {
+            //if (!isAuthorized) {
                 const token = tokenInput.value.trim();
                 if (!token) {
                     return alert('Enter a valid API token.');
@@ -1327,7 +1327,7 @@ input {
 
 
 
-                //}
+                }
 
                 document.getElementById('connect').disabled = true;
                 document.getElementById('start').textContent = 'Stop to Trade';
@@ -1337,22 +1337,22 @@ input {
                 document.getElementById('start').classList.remove('primary');
                 document.getElementById('start').classList.add('danger');
                 notify("🔥 Starting a trading bot", "3000", "#cfe2ff", "left");
-            } else {
-                ws.close();
-                isAuthorized = false;
-                document.getElementById('connect').disabled = false;
-                document.getElementById('start').textContent = 'Start to Trade';
-                document.getElementById('start').classList.add('primary');
-                document.getElementById('start').classList.remove('danger');
-              	document.getElementById('strategy').disabled = false;
-          		document.getElementById('stake').disabled = false;
-          		document.getElementById('martingale').disabled = false;
-                notify("💤 Stopping a trading bot", "3000", "#cfe2ff", "left");
+            //} else {
+            //    ws.close();
+            //    isAuthorized = false;
+            //    document.getElementById('connect').disabled = false;
+            //    document.getElementById('start').textContent = 'Start to Trade';
+            //    document.getElementById('start').classList.add('primary');
+            //    document.getElementById('start').classList.remove('danger');
+            //    document.getElementById('strategy').disabled = false;
+          	//	  document.getElementById('stake').disabled = false;
+          	//	  document.getElementById('martingale').disabled = false;
+            //    notify("💤 Stopping a trading bot", "3000", "#cfe2ff", "left");
                 //safeCloseWS();
                 //notify("💤 Bot auto-restart", "3000", "#cfe2ff", "left");
                 //autoRestart();
 				//$("#start").trigger("click");
-            }
+            //}
 
 
         }
@@ -1375,6 +1375,7 @@ input {
 </body>
 
 </html>
+
 
 
 
