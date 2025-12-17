@@ -769,18 +769,6 @@ input {
             </div>
         </div>
       
-      	<div>
-            <!-- SmartAutoTrading -->
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-3508010468806898"
-                 data-ad-slot="2861229331"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-        </div>
 
         <!-- <div class="status-box"><strong>Status:</strong> <span id="status">Waiting...</span></div> -->
         <div class="container-box">
@@ -802,22 +790,7 @@ input {
     </div>
 
 
-<!-- Modal -->
-<div id="myModal" class="modal">
-  	<div class="modal-content">
-      	<div>
-        	<!-- StartBot -->
-        	<ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-3508010468806898"
-                 data-ad-slot="8157318852"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-        </div>
-    	<button id="closeBtn" class="btn">Close</button>
-      	<p id="countdownTxt">Closing available in <span id="count">5</span> seconds.</p>
-  	</div>
-</div>
+
 
 
 
@@ -901,46 +874,7 @@ input {
               	document.getElementById('strategy').disabled = false;
           		document.getElementById('stake').disabled = false;
           		document.getElementById('martingale').disabled = false;
-              
-              
-                $(function () {
-                  let countdownInterval;
-
-                  let timeLeft = 10;
-                  $('#count').text(timeLeft);
-                  $('#closeBtn').hide();
-                  $('#myModal').fadeIn();
-                  $('#countdownTxt').fadeIn();
-
-                  countdownInterval = setInterval(function () {
-                      timeLeft--;
-                      $('#count').text(timeLeft);
-                      if (timeLeft <= 0) {
-                          clearInterval(countdownInterval);
-                          $('#count').text("0");
-                          $('#closeBtn').fadeIn();
-                          $('#countdownTxt').fadeOut();
-                      }
-                  }, 1000);
-
-                  setTimeout(function () {
-                      try {
-                          (adsbygoogle = window.adsbygoogle || []).push({});
-                      } catch (e) {
-                          console.error("AdSense error:", e);
-                      }
-                  }, 300);
-
-                  $('#closeBtn').click(function () {
-                      $('#myModal').fadeOut();
-                  });
-              });
-              
-              
-              
-              
-              
-              
+                            
             } else {
                 ws.close();
                 isConnect = false;
@@ -1441,6 +1375,7 @@ input {
 </body>
 
 </html>
+
 
 
 
