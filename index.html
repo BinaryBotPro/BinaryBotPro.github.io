@@ -1291,7 +1291,7 @@ input {
                             start_analyzing = true;
                             tickPrices.length = 0
                             //setTimeout(() => { console.log("Waiting") }, 3000);
-                            $("#start").trigger("click");
+                            //$("#start").trigger("click");
                             //setTimeout(() => RiseFall(), 1000);
                             //addResultRow(poc);
                             //lastContractId = null;
@@ -1306,7 +1306,7 @@ input {
 
                             notify("🔄 Auto Restarting...", "3000", "#cfe2ff", "left");                            
                             //RiseFall();
-							
+							$("#start").trigger("click");
                         }
                     }
 
@@ -1351,7 +1351,7 @@ input {
                 //safeCloseWS();
                 //notify("💤 Bot auto-restart", "3000", "#cfe2ff", "left");
                 //autoRestart();
-				$("#start").trigger("click");
+				//$("#start").trigger("click");
             }
 
 
@@ -1375,6 +1375,7 @@ input {
 </body>
 
 </html>
+
 
 
 
