@@ -1249,6 +1249,7 @@ input {
                     const data = JSON.parse(event.data);
                     if (data.msg_type === 'authorize') {
                       	if (!data.authorize || !data.authorize.loginid) {
+							$("#start").trigger("click");
                             return; // STOP → prevents crash
                         }
                         isAuthorized = true;
@@ -1439,6 +1440,7 @@ input {
 </body>
 
 </html>
+
 
 
 
