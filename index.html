@@ -286,7 +286,355 @@
         .toastify {
             font-size: 16px;
         }
+.post-title {
+    padding: 16px;
+    font-size: 42px!important;
+    color: #fff!important;
+    text-shadow:
+	  0 0 1px #fff,
+      0 0 1px #fff,
+      0 0 20px #fff,
+      0 0 40px #0ff,
+      0 0 80px #0ff;
+}
+p, li {
+    margin: 0!important;
+}	
+.post-item-inner {
+    background: black;
+  	background-image: url(https://www.transparenttextures.com/patterns/3px-tile.png);
+}
+:root {
+    --bg: #ffffff;
+    --text: #333;
+    --header: #1a202c;
+    --box-bg: #edf2f7;
+    --table-bg: white;
+    --th-bg: #f8f9fa;
+    --border: #e0e0e0;
+    --hover: #f1f3f5;
+}
+* {
+    font-family: Arial, "Segoe UI", sans-serif;
+    touch-action: manipulation;
+    /* font-size: 18px; */
+}
 
+h1 {
+    margin: 0;
+    font-size: 20px
+}
+
+h2 {
+    margin: 0;
+    color: #000;
+    font-size: 18px
+}
+h3 {
+    margin: 0;
+    font-size: 16px
+}
+
+input[type="text"], input[type="password"] {
+    padding: 8px;
+    /* width: 300px; */
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    color: black;
+    
+}
+
+select {
+    padding: 8px;
+    /* width: 300px; */
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    color: black;
+    cursor: pointer;
+    font-size: 16px
+}
+
+
+button {
+    padding: 12px 14px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.txt-danger {
+    color: #dc3545;
+}
+.txt-success {
+    color: #28a745;
+}
+.primary {
+    background-color: #007bff;
+}
+.primary:hover {
+    background-color: #0056b3;
+}
+
+.danger {
+    background-color: #dc3545;
+}
+.danger:hover {
+    background-color: #b40819;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+label {
+    font-weight: bold;
+    color: #7d7d7d;
+}
+p {
+    margin: 0;
+}
+.txt-muted {
+	color: #7d7d7d;
+}
+.status-box {
+    padding: 10px;
+    background: var(--box-bg);
+    border-left: 4px solid #007bff;
+    margin-top: 10px;
+    font-size: 16px;
+    border-radius: 4px;
+}
+
+table {
+  	font-size: 12px;
+    width: 100%;
+    margin-top: 16px;
+    border-collapse: collapse;
+    background: var(--table-bg);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+    white-space: nowrap;
+}
+
+th,
+td {
+    padding: 0px 8px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+}
+
+th {
+    background-color: var(--th-bg);
+    font-weight: 600;
+}
+
+tr:hover {
+    background-color: var(--hover);
+}
+
+.win {
+    color: green;
+    font-weight: bold;
+}
+
+.loss {
+    color: red;
+    font-weight: bold;
+}
+
+.header-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    flex-wrap: wrap;
+}
+
+.box {
+    display: flex;
+    flex-direction: column;
+    /* border: 2px solid var(--border); */
+    border-radius: 15px;
+    padding: 12px;
+    background: rgb(255, 255, 255);
+    /* box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.06) 0px 1px 2px 0px */
+    /* color: #00ff37; */
+    
+}
+
+#connect {
+    margin-top: 16px;
+}
+#start {
+    margin-top: 16px;
+}
+#api-token {
+    font-size: 16px;
+}
+
+.description {
+    font-size: 12px;
+    margin-top: 8px
+}
+.description p {
+    margin: 6px 0;
+  	font-weight: bold;
+}
+ol {
+    padding: 0 20px;
+    margin: 0;
+}
+
+.container-box {
+    display: flex;
+    flex-wrap: wrap;
+    grid-gap: 16px;
+    overflow-x: auto;
+}
+.flex-1 {
+    flex: 1
+}
+
+.mb-base {
+    margin-bottom: 16px;
+}
+
+#tick-list {
+    margin: 0;
+    padding: 0;
+}
+input:disabled {
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+#account-id, #balance {
+    font-size: 24px;
+    text-align: center;
+    font-weight: bold;
+    color: #007bff;
+}
+
+#trade-count, #winrate, #total-profit, #winloss, #max-dd, #lowest-session {
+    font-size: 24px;
+    text-align: center;
+    font-weight: bold;
+}
+
+h1 {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+}
+.h2 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 16px;
+}
+.img {
+    max-width: 280px;
+    width: 100%;
+    margin: 0 auto;
+    margin-bottom: 16px;
+}
+
+.d-none {
+    display: none;
+}
+.fs-i {
+    font-size: 22px;
+  	font-weight: normal;
+}
+.bd-box {
+    border: 1px solid var(--border);
+}
+.toastify {
+    font-size: 16px;
+}  
+input {
+    padding: 8px;
+    /* width: 300px; */
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    color: black;
+    cursor: auto;
+    font-size: 16px;
+}
+.p-0 {
+  	padding: 0;
+}
+.mt-base {
+    margin-top: 8px;
+}
+.txt-small {
+  	font-size: 12px;
+    font-weight: normal;
+}
+.header-box h3 {
+	font-size: 16px;
+  	white-space: nowrap;
+}
+.header-box h2 {
+  	color: black;
+	font-size: 18px;
+  	white-space: nowrap;
+  	margin-bottom: 8px;
+}
+.fw-normal {
+	font-weight: normal;  
+}
+.txt-primary {
+  	color: #007bff;
+}
+  
+  
+   /* Modal styles */
+    .modal {
+      display: none; 
+      position: fixed; 
+      z-index: 9000; 
+      left: 0; top: 0; width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      text-align: center;
+      position: relative;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      background: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #0056b3;
+    }  
     </style>
 
 </head>
@@ -349,7 +697,7 @@
 
         <label for="api-token">Select</label>
         <select name="" id="strategy">
-            <option value="TickPickerV1">Tick Picker V1</option>
+            <option value="RiseFall">HYIP</option>
         </select>
         <button class="primary" id="start" disabled>Start to Trade</button>
     </div>
@@ -1021,6 +1369,7 @@
 </body>
 
 </html>
+
 
 
 
