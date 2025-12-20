@@ -922,7 +922,7 @@ input {
                             currency: "USD",
                             growth_rate: 0.01,
                             limit_order: {
-                                take_profit: winStake * 2,
+                                take_profit: winStake,
                             },
                         },
                     })
@@ -1207,21 +1207,32 @@ input {
                         var s = "0" + dt.getSeconds();
 
                       	if (x == 2) {
-                        
+                        	if (data.tick) {
+
+                                  const price = parseFloat(data.tick.quote.toFixed(3));
+                                  tickPrices.push(price);
+                                  if (tickPrices.length < 2) return; 
+                                  const factor = 0.00613 * tickPrices[tickPrices.length-2] / 100;
+								  //console.log(tickPrices, factor);
+                                  if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
+                                    buyContract("ACCU", "R_10", winStake*100);
+                                  }
+                                 
+                              }
 
                             // buyContract("PUT", "R_100", initialStake, "", "5", "t");
 
-                            if (data.tick) {
-                                tickPrices.push(price);
-								const n = tickPrices.length;
+                            //if (data.tick) {
+                            //    tickPrices.push(price);
+							//	const n = tickPrices.length;
                                 
-                                if ((getLastDigit(tickPrices[n-1]) % 2 == 0) && (getLastDigit(tickPrices[n-2]) % 2 == 0) && (getLastDigit(tickPrices[n-3]) % 2 == 0) && (getLastDigit(tickPrices[n-4]) % 2 == 0) && (getLastDigit(tickPrices[n-5]) % 2 == 0) && (getLastDigit(tickPrices[n-6]) % 2 == 0)) {
-                                  buyContract("DIGITODD", "R_10", initialStake, "", "1", "t");
-                                } else if ((getLastDigit(tickPrices[n-1]) % 2 == 1) && (getLastDigit(tickPrices[n-2]) % 2 == 1) && (getLastDigit(tickPrices[n-3]) % 2 == 1) && (getLastDigit(tickPrices[n-4]) % 2 == 1) && (getLastDigit(tickPrices[n-5]) % 2 == 1) && (getLastDigit(tickPrices[n-6]) % 2 == 1)) {
-                                  buyContract("DIGITEVEN", "R_10", initialStake, "", "1", "t");
-                                }
+                            //    if ((getLastDigit(tickPrices[n-1]) % 2 == 0) && (getLastDigit(tickPrices[n-2]) % 2 == 0) && (getLastDigit(tickPrices[n-3]) % 2 == 0) && (getLastDigit(tickPrices[n-4]) % 2 == 0) && (getLastDigit(tickPrices[n-5]) % 2 == 0) && (getLastDigit(tickPrices[n-6]) % 2 == 0)) {
+                            //      buyContract("DIGITODD", "R_10", initialStake, "", "1", "t");
+                            //    } else if ((getLastDigit(tickPrices[n-1]) % 2 == 1) && (getLastDigit(tickPrices[n-2]) % 2 == 1) && (getLastDigit(tickPrices[n-3]) % 2 == 1) && (getLastDigit(tickPrices[n-4]) % 2 == 1) && (getLastDigit(tickPrices[n-5]) % 2 == 1) && (getLastDigit(tickPrices[n-6]) % 2 == 1)) {
+                            //      buyContract("DIGITEVEN", "R_10", initialStake, "", "1", "t");
+                            //    }
 
-                            }
+                            //}
                           
                         } else if (x == 1) {
                           	if (data.tick && typeof data.tick.quote !== 'undefined') {
@@ -1375,6 +1386,7 @@ input {
 </body>
 
 </html>
+
 
 
 
