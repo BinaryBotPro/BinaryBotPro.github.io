@@ -1215,7 +1215,11 @@ input {
                                   const factor = 0.00613 * tickPrices[tickPrices.length-2] / 100;
 								  //console.log(tickPrices, factor);
                                   if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
-                                    buyContract("ACCU", "R_10", winStake*100);
+									  if (tickPrices[0] < tickPrices[1]) {
+										  buyContract("PUT", "R_10", initialStake, "", "1", "t");
+									  } else {
+										  buyContract("CALL", "R_10", initialStake, "", "1", "t");
+									  }
                                   }
                                  
                               }
@@ -1386,6 +1390,7 @@ input {
 </body>
 
 </html>
+
 
 
 
