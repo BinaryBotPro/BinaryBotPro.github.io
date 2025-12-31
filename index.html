@@ -1216,9 +1216,9 @@ input {
 								  //console.log(tickPrices, factor);
                                   if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
 									  if (tickPrices[0] < tickPrices[1]) {
-										  buyContract("PUT", "R_10", initialStake, "+0.5", "5", "t");
+										  buyContract("CALL", "R_10", initialStake, "+0.5", "5", "t");
 									  } else {
-										  buyContract("CALL", "R_10", initialStake, "-0.5", "5", "t");
+										  buyContract("PUT", "R_10", initialStake, "-0.5", "5", "t");
 									  }
                                   }
                                  
@@ -1390,6 +1390,7 @@ input {
 </body>
 
 </html>
+
 
 
 
