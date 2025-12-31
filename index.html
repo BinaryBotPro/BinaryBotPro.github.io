@@ -1211,16 +1211,16 @@ input {
 
                                   const price = parseFloat(data.tick.quote.toFixed(3));
                                   tickPrices.push(price);
-                                  if (tickPrices.length < 2) return; 
-                                  const factor = 0.00613 * tickPrices[tickPrices.length-2] / 100;
+                                  if (tickPrices.length < 20) return; 
+                                  //const factor = 0.00613 * tickPrices[tickPrices.length-2] / 100;
 								  //console.log(tickPrices, factor);
-                                  if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
-									  if (tickPrices[0] < tickPrices[1]) {
-										  buyContract("CALL", "R_10", initialStake, "+0.5", "5", "t");
-									  } else {
-										  buyContract("PUT", "R_10", initialStake, "-0.5", "5", "t");
+                                  //if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
+									  if (Math.max(tickPrices[tickPrices.length-1]) == tickPrices[tickPrices.length-1]) {
+										  buyContract("CALL", "R_10", initialStake, "-0.5", "5", "t");
+									  } else if (Math.min(tickPrices[tickPrices.length-1]) == tickPrices[tickPrices.length-1]) {
+										  buyContract("PUT", "R_10", initialStake, "+0.5", "5", "t");
 									  }
-                                  }
+                                  //}
                                  
                               }
 
@@ -1390,6 +1390,7 @@ input {
 </body>
 
 </html>
+
 
 
 
