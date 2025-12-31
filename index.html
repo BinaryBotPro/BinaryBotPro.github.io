@@ -1206,7 +1206,7 @@ input {
                         var m = "0" + dt.getMinutes();
                         var s = "0" + dt.getSeconds();
 
-                      	if (x == 2) {
+                      	if (x == 1) {
                         	if (data.tick) {
 
                                   const price = parseFloat(data.tick.quote.toFixed(3));
@@ -1238,7 +1238,7 @@ input {
 
                             //}
                           
-                        } else if (x == 1) {
+                        } else if (x == 2) {
                           	if (data.tick && typeof data.tick.quote !== 'undefined') {
                               
                                //if (data.tick) {
@@ -1390,6 +1390,7 @@ input {
 </body>
 
 </html>
+
 
 
 
