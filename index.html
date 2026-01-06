@@ -1216,9 +1216,9 @@ input {
 								  //console.log(tickPrices, factor);
                                   //if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
 									  if (Math.max(tickPrices[tickPrices.length-1]) == tickPrices[tickPrices.length-1]) {
-										  buyContract("CALL", "R_10", initialStake, "-0.5", "5", "t");
-									  } else if (Math.min(tickPrices[tickPrices.length-1]) == tickPrices[tickPrices.length-1]) {
 										  buyContract("PUT", "R_10", initialStake, "+0.5", "5", "t");
+									  } else if (Math.min(tickPrices[tickPrices.length-1]) == tickPrices[tickPrices.length-1]) {
+										  buyContract("CALL", "R_10", initialStake, "-0.5", "5", "t");
 									  }
                                   //}
                                  
@@ -1254,7 +1254,7 @@ input {
                                  
                               //}
                               
-                              if (Math.floor(Math.random() * 10) == predictor) {
+                              if (Math.floor(Math.random() * 10) == getLastDigit(data.tick.quote)) {
                                   buyContract("DIGITDIFF", symbol[i], initialStake, getLastDigit(data.tick.quote), "1", "t");
                               }
                               
@@ -1390,6 +1390,7 @@ input {
 </body>
 
 </html>
+
 
 
 
