@@ -1254,8 +1254,8 @@ input {
                                  
                               //}
                               
-                              if (getLastDigit(data.tick.quote) == predictor) {
-                                  buyContract("DIGITDIFF", symbol[i], initialStake, getLastDigit(data.tick.quote), (getLastDigit(data.tick.quote)*1)+1, "t");
+                              if (getLastDigit(data.tick.quote) == Math.floor(Math.random() * 10)) {
+                                  buyContract("DIGITDIFF", symbol[i], initialStake, getLastDigit(data.tick.quote), "1", "t");
                               }
                               
                               
@@ -1390,6 +1390,7 @@ input {
 </body>
 
 </html>
+
 
 
 
