@@ -852,10 +852,10 @@ input {
                 ws.onmessage = (event) => {
                     const data = JSON.parse(event.data);
                     if (data.msg_type === 'authorize') {
-                      	if (!data.authorize || !data.authorize.loginid) {
-                            console.error("Authorize message missing loginid:", data);
-                            return; // STOP → prevents crash
-                        }
+                      	//if (!data.authorize || !data.authorize.loginid) {
+                        //    console.error("Authorize message missing loginid:", data);
+                        //    return; // STOP → prevents crash
+                        //}
                         isConnect = true;
                         document.getElementById('account-id').textContent = data.authorize.loginid;
                         tokenInput.disabled = true;
@@ -1390,6 +1390,7 @@ input {
 </body>
 
 </html>
+
 
 
 
