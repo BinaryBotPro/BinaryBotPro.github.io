@@ -1211,7 +1211,7 @@ input {
 
                                   const price = parseFloat(data.tick.quote.toFixed(3));
                                   tickPrices.push(price);
-                                  if (tickPrices.length < 20) return; 
+                                  if (tickPrices.length < 50) return; 
                                   //const factor = 0.00613 * tickPrices[tickPrices.length-2] / 100;
 								  //console.log(tickPrices, factor);
                                   //if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
@@ -1390,6 +1390,7 @@ input {
 </body>
 
 </html>
+
 
 
 
