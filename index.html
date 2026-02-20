@@ -1224,14 +1224,14 @@ input {
 										  (tickPrices[tickPrices.length-3] > tickPrices[tickPrices.length-4]) && 
 										  (tickPrices[tickPrices.length-4] > tickPrices[tickPrices.length-5])
 										 ) {
-										  buyContract("PUT", "R_10", initialStake, "+0.5", "5", "t");
+										  buyContract("CALL", "R_10", initialStake, "-0.5", "5", "t");
 									  } else if ((Math.min(tickPrices[tickPrices.length-1]) == tickPrices[tickPrices.length-1]) && 
 										  (tickPrices[tickPrices.length-1] < tickPrices[tickPrices.length-2]) && 
 										  (tickPrices[tickPrices.length-2] < tickPrices[tickPrices.length-3]) && 
 										  (tickPrices[tickPrices.length-3] < tickPrices[tickPrices.length-4]) && 
 										  (tickPrices[tickPrices.length-4] < tickPrices[tickPrices.length-5])
 									     ) {
-										  buyContract("CALL", "R_10", initialStake, "-0.5", "5", "t");
+										  buyContract("PUT", "R_10", initialStake, "+0.5", "5", "t");
 									  }
                                   //}
                                  
@@ -1403,6 +1403,7 @@ input {
 </body>
 
 </html>
+
 
 
 
