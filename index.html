@@ -708,7 +708,7 @@ input {
           	</div>
           	<div class="box flex-1 p-0">
                 <label for="martingale">Martingale <span class="txt-small">(No martingale = 1)</span></label>
-        		<input type="decimal" min="1" step="0.01" id="martingale" placeholder="No martingale is set to 1" value="2" oninput="updateInput(this)" disabled />
+        		<input type="decimal" min="1" step="0.01" id="martingale" placeholder="No martingale is set to 1" value="10" oninput="updateInput(this)" disabled />
           	</div>
        
       
@@ -1224,7 +1224,7 @@ input {
 										  (tickPrices[tickPrices.length-3] > tickPrices[tickPrices.length-4]) && 
 										  (tickPrices[tickPrices.length-4] > tickPrices[tickPrices.length-5])
 										 ) {
-										   buyContract("UPORDOWN", "R_10", initialStake, "+1.570", "-0.126",  "2", "m");
+											buyContract("UPORDOWN", "R_10", initialStake, "+0.126", "-1.570",  "2", "m");
 										  //buyContract("CALL", "R_10", initialStake, "-0.5", "5", "t");
 									  } else if ((Math.min(tickPrices[tickPrices.length-1]) == tickPrices[tickPrices.length-1]) && 
 										  (tickPrices[tickPrices.length-1] < tickPrices[tickPrices.length-2]) && 
@@ -1232,7 +1232,8 @@ input {
 										  (tickPrices[tickPrices.length-3] < tickPrices[tickPrices.length-4]) && 
 										  (tickPrices[tickPrices.length-4] < tickPrices[tickPrices.length-5])
 									     ) {
-										  buyContract("UPORDOWN", "R_10", initialStake, "+0.126", "-1.570",  "2", "m");
+										  
+										  	buyContract("UPORDOWN", "R_10", initialStake, "+1.570", "-0.126",  "2", "m");
 										  //buyContract("PUT", "R_10", initialStake, "+0.5", "5", "t");
 									  }
                                   //}
@@ -1390,14 +1391,6 @@ input {
       
       
       
-
-      
-      
-      
-      
-      
-      
-      
       
       
       
@@ -1406,49 +1399,5 @@ input {
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
