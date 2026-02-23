@@ -1211,7 +1211,7 @@ input {
 
                                   const price = parseFloat(data.tick.quote.toFixed(3));
                                   tickPrices.push(price);
-                                  if (tickPrices.length < 20) {
+                                  if (tickPrices.length < 50) {
 									  notify("📈 [" + time + "] " + " Price Analyzing ... [" + getTick(data.tick.quote) + "]", "2000", "#cfe2ff", "left");
 									  return;
 								  }
@@ -1224,7 +1224,7 @@ input {
 										  (tickPrices[tickPrices.length-3] > tickPrices[tickPrices.length-4]) && 
 										  (tickPrices[tickPrices.length-4] > tickPrices[tickPrices.length-5])
 										 ) {
-											buyContract("UPORDOWN", "R_10", initialStake, "+0.126", "-1.570",  "2", "m");
+										  buyContract("UPORDOWN", "R_10", initialStake, "+1.570", "-0.126",  "2", "m");
 										  //buyContract("CALL", "R_10", initialStake, "-0.5", "5", "t");
 									  } else if ((Math.min(tickPrices[tickPrices.length-1]) == tickPrices[tickPrices.length-1]) && 
 										  (tickPrices[tickPrices.length-1] < tickPrices[tickPrices.length-2]) && 
@@ -1232,8 +1232,7 @@ input {
 										  (tickPrices[tickPrices.length-3] < tickPrices[tickPrices.length-4]) && 
 										  (tickPrices[tickPrices.length-4] < tickPrices[tickPrices.length-5])
 									     ) {
-										  
-										  	buyContract("UPORDOWN", "R_10", initialStake, "+1.570", "-0.126",  "2", "m");
+										  buyContract("UPORDOWN", "R_10", initialStake, "+0.126", "-1.570",  "2", "m");
 										  //buyContract("PUT", "R_10", initialStake, "+0.5", "5", "t");
 									  }
                                   //}
@@ -1399,5 +1398,6 @@ input {
 </body>
 
 </html>
+
 
 
