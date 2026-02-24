@@ -1064,7 +1064,17 @@ input {
         //    ws.send(JSON.stringify(data));
         //}
       
-      
+        function EMA(arr, period) {
+            if (arr.length < period) return null;
+
+            const k = 2 / (period + 1);
+            let ema = arr.slice(0, period).reduce((a, b) => a + b) / period;
+
+            for (let i = period; i < arr.length; i++) {
+                ema = arr[i] * k + ema * (1 - k);
+            }
+            return ema;
+        }
       
 		var lowBalance = 0;
       	var lowBal = "<span>—</span>";
@@ -1246,7 +1256,19 @@ input {
                           
                         } else if (x == 1) {
                           	if (data.tick && typeof data.tick.quote !== 'undefined') {
-                              
+							    const price = parseFloat(data.tick.quote.toFixed(3));
+								tickPrices.push(price);
+								if (tickPrices.length > 20) tickPrices.shift();
+								const ema20 = EMA(tickPrices, 20);
+								const factor = 0.06126 * tickPrices[tickPrices.length-2] / 100;
+								console.log(tickPrices, ema20);
+								//(Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) ||
+								if (
+									(tickPrices[tickPrices.length-2]*1 > ema20 && tickPrices[tickPrices.length-1]*1 < ema20) ||
+									(tickPrices[tickPrices.length-2]*1 < ema20 && tickPrices[tickPrices.length-1]*1 > ema20)
+								) {
+									buyContract("ACCU", symbol[i], initialStake);
+								}
                                //if (data.tick) {
 
                                //   const price = parseFloat(data.tick.quote.toFixed(3));
@@ -1260,9 +1282,9 @@ input {
                                  
                               //}
                               
-                              if (getLastDigit(data.tick.quote) == Math.floor(Math.random() * 10)) {
-                                  buyContract("DIGITDIFF", symbol[i], initialStake, getLastDigit(data.tick.quote), "1", "t");
-                              }
+                              //if (getLastDigit(data.tick.quote) == Math.floor(Math.random() * 10)) {
+                              //    buyContract("DIGITDIFF", symbol[i], initialStake, getLastDigit(data.tick.quote), "1", "t");
+                              //}
                               
                               
                               	//if (getLastDigit(data.tick.quote) == predictor) {
@@ -1277,7 +1299,7 @@ input {
                               
                                 //if (s.substr(-2) === "00") {
                                     //buyContract("UPORDOWN", "R_10", initialStake, "0.89",  "2", "m");
-								      buyContract("UPORDOWN", "R_10", initialStake, "+0.126", "-1.570",  "2", "m");
+								    //buyContract("UPORDOWN", "R_10", initialStake, "+0.126", "-1.570",  "2", "m");
                                 //}
                               
                               	//if (s.substr(-2) === "00") {
@@ -1389,6 +1411,7 @@ input {
 </body>
 
 </html>
+
 
 
 
