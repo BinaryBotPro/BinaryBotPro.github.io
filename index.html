@@ -814,7 +814,7 @@ input {
         const connectButton = document.getElementById("connect");
         const tokenInput = document.getElementById("api-token");
         const token = tokenInput.value.trim();
-        var i = 0;
+        var i = 4;
         const symbol = ["R_10", "R_25", "R_50", "R_75", "R_100", "1HZ10V", "1HZ25V", "1HZ50V", "1HZ75V", "1HZ100V"];
         var maxDecimal = 0;
         var start_analyzing = true;
@@ -922,7 +922,7 @@ input {
                             currency: "USD",
                             growth_rate: 0.01,
                             limit_order: {
-                                take_profit: winStake,
+                                take_profit: 0.1,
                             },
                         },
                     })
@@ -1230,8 +1230,8 @@ input {
 								  //console.log(tickPrices, factor);
                                   //if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
 									  if ((Math.max(tickPrices)*1) == (getTick(data.tick.quote)*1)) {
-										  buyContract("UPORDOWN", "R_10", initialStake, "+1.570", "-0.126",  "2", "m");
-										  //buyContract("CALL", "R_10", initialStake, "-0.5", "5", "t");
+										  buyContract("UPORDOWN", symbol[i], initialStake, "+1.570", "-0.126",  "2", "m");
+										  //buyContract("CALL", symbol[i], initialStake, "-0.5", "5", "t");
 									  } else if ((Math.min(tickPrices)*1) == (getTick(data.tick.quote)*1)) {
 										  buyContract("UPORDOWN", "R_10", initialStake, "+0.126", "-1.570",  "2", "m");
 										  //buyContract("PUT", "R_10", initialStake, "+0.5", "5", "t");
@@ -1411,6 +1411,7 @@ input {
 </body>
 
 </html>
+
 
 
 
