@@ -1211,26 +1211,26 @@ input {
 
                                   const price = parseFloat(data.tick.quote.toFixed(3));
                                   tickPrices.push(price);
-                                  if (tickPrices.length < 50) {
+                                  if (tickPrices.length < 20) {
 									  notify("📈 [" + time + "] " + " Price Analyzing ... [" + getTick(data.tick.quote) + "]", "2000", "#cfe2ff", "left");
 									  return;
 								  }
                                   //const factor = 0.00613 * tickPrices[tickPrices.length-2] / 100;
 								  //console.log(tickPrices, factor);
                                   //if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
-									  if ((Math.max(tickPrices[tickPrices.length-1]) == tickPrices[tickPrices.length-1]) && 
+									  if ((Math.max(tickPrices) == tickPrices[tickPrices.length-1]) && 
 										  (tickPrices[tickPrices.length-1] > tickPrices[tickPrices.length-2]) && 
 										  (tickPrices[tickPrices.length-2] > tickPrices[tickPrices.length-3]) && 
 										  (tickPrices[tickPrices.length-3] > tickPrices[tickPrices.length-4]) && 
-										  (tickPrices[tickPrices.length-4] > tickPrices[tickPrices.length-5])
+										  (tickPrices[tickPrices.length-4] < tickPrices[tickPrices.length-5])
 										 ) {
 										  buyContract("UPORDOWN", "R_10", initialStake, "+1.570", "-0.126",  "2", "m");
 										  //buyContract("CALL", "R_10", initialStake, "-0.5", "5", "t");
-									  } else if ((Math.min(tickPrices[tickPrices.length-1]) == tickPrices[tickPrices.length-1]) && 
+									  } else if ((Math.min(tickPrices) == tickPrices[tickPrices.length-1]) && 
 										  (tickPrices[tickPrices.length-1] < tickPrices[tickPrices.length-2]) && 
 										  (tickPrices[tickPrices.length-2] < tickPrices[tickPrices.length-3]) && 
 										  (tickPrices[tickPrices.length-3] < tickPrices[tickPrices.length-4]) && 
-										  (tickPrices[tickPrices.length-4] < tickPrices[tickPrices.length-5])
+										  (tickPrices[tickPrices.length-4] > tickPrices[tickPrices.length-5])
 									     ) {
 										  buyContract("UPORDOWN", "R_10", initialStake, "+0.126", "-1.570",  "2", "m");
 										  //buyContract("PUT", "R_10", initialStake, "+0.5", "5", "t");
@@ -1398,6 +1398,7 @@ input {
 </body>
 
 </html>
+
 
 
 
