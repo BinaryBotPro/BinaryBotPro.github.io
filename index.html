@@ -1213,7 +1213,7 @@ input {
                                   tickPrices.push(price);
                                   if (tickPrices.length < 20) {
 									  notify("📈 [" + time + "] " + " Price Analyzing ... [" + getTick(data.tick.quote) + "]", "2000", "#cfe2ff", "left");
-									  console.log(Math.max(tickPrices)*1, Math.min(tickPrices)*1);
+									  console.log(Math.max(tickPrices), Math.min(tickPrices));
 									  return;
 								  }
                                   //const factor = 0.00613 * tickPrices[tickPrices.length-2] / 100;
@@ -1389,6 +1389,7 @@ input {
 </body>
 
 </html>
+
 
 
 
