@@ -704,7 +704,7 @@ input {
       	<div class="container-box mt-base">
           	<div class="box flex-1 p-0">
           		<label for="stake">Stake <span class="txt-small">(Minimum stake: 0.35$)</span></label>
-            	<input type="decimal" min="0.35" step="0.01" id="stake" placeholder="Minimum stake 0.35$" value="2.1" oninput="updateInput(this)" disabled />
+            	<input type="decimal" min="0.35" step="0.01" id="stake" placeholder="Minimum stake 0.35$" value="10" oninput="updateInput(this)" disabled />
           	</div>
           	<div class="box flex-1 p-0">
                 <label for="martingale">Martingale <span class="txt-small">(No martingale = 1)</span></label>
@@ -1045,25 +1045,11 @@ input {
       
         function autoRestart() {
             setTimeout(() => {
-        //        start_analyzing = true;
                 RiseFall();
             }, 1000);
         }
 
-        //function safeCloseWS() {
-        //    try { ws.close(); } catch(e) {}
-        //    isAuthorized = false;
-        //}
-      
 
-        //function wsSafeSend(data) {
-        //    if (!ws || ws.readyState !== WebSocket.OPEN) {
-        //        setTimeout(() => wsSafeSend(data), 100);
-        //        return;
-        //    }
-        //    ws.send(JSON.stringify(data));
-        //}
-      
         function EMA(arr, period) {
             if (arr.length < period) return null;
 
@@ -1075,6 +1061,7 @@ input {
             }
             return ema;
         }
+
       
 		var lowBalance = 0;
       	var lowBal = "<span>—</span>";
@@ -1082,6 +1069,7 @@ input {
       	var maxDDTxt = "<span>—</span>";
       	var countMaxDD = 0;
         let lossStake = [];
+        
         function addResultRow(poc) {
             const table = document.getElementById("results-table").querySelector("tbody");
             const row = document.createElement("tr");
@@ -1115,7 +1103,7 @@ input {
               
               	
               	initialStake = (initialStake * martingale).toFixed(2);
-             	x = 2;
+             	x = 1;
 
             }
 			start_analyzing = true;
@@ -1130,14 +1118,6 @@ input {
             } else {
               	maxDDTxt = "<span>$" + formatNumber(maxDD) + "</span>";
             }
-
-            // Add new data if not present
-			//i++;
-            //if (i == (symbol.length - 1)) {
-            //    i = 0;
-            //}
-          	//maxDecimal = 0;
-
 
 
             if (sessionProfit > 0) {
@@ -1207,9 +1187,11 @@ input {
                     if (data.msg_type === 'balance' && data.balance && typeof data.balance.balance !== 'undefined') {
                         document.getElementById('balance').textContent = parseFloat(data.balance.balance).toFixed(2);
                     }
+                    
+
 
                     if (data.msg_type === 'tick' && data.tick && typeof data.tick.quote !== 'undefined' && start_analyzing == true) {
-                        const price = getTick(data.tick.quote);
+                        const price = getTick(data.tick.quote)*1;
                         const time = new Date(data.tick.epoch * 1000).toLocaleTimeString();
                         var dt = new Date(data.tick.epoch * 1000);
                         var hr = dt.getHours();
@@ -1218,107 +1200,55 @@ input {
 
                       	if (x == 2) {
                         	if (data.tick) {
+                                const price = parseFloat(data.tick.quote.toFixed(3));
+                                tickPrices.push(price);
 
-                                  const price = parseFloat(data.tick.quote.toFixed(3));
-                                  tickPrices.push(price);
-                                  if (tickPrices.length < 20) {
-									  notify("📈 [" + time + "] " + " Price Analyzing ... [" + getTick(data.tick.quote) + "]", "2000", "#cfe2ff", "left");
-									  console.log(Math.max(tickPrices), Math.min(tickPrices));
-									  return;
-								  }
-                                  //const factor = 0.00613 * tickPrices[tickPrices.length-2] / 100;
-								  //console.log(tickPrices, factor);
-                                  //if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
-									  if ((Math.max(tickPrices)*1) == (getTick(data.tick.quote)*1)) {
-										  buyContract("UPORDOWN", symbol[i], initialStake, "+1.570", "-0.126",  "2", "m");
-										  //buyContract("CALL", symbol[i], initialStake, "-0.5", "5", "t");
-									  } else if ((Math.min(tickPrices)*1) == (getTick(data.tick.quote)*1)) {
-										  buyContract("UPORDOWN", "R_10", initialStake, "+0.126", "-1.570",  "2", "m");
-										  //buyContract("PUT", "R_10", initialStake, "+0.5", "5", "t");
-									  }
-                                  //}
+                                if (tickPrices.length >= 20) {
+                                    console.log(Math.min(...tickPrices), Math.max(...tickPrices), price);
+                                //const factor = 0.00613 * tickPrices[tickPrices.length-2] / 100;
+                                //console.log(tickPrices, factor);
+                                //if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
+                                    if (Math.min(...tickPrices) == price) {
+                                        buyContract("UPORDOWN", symbol[i], initialStake, "-0.2", "+2.47",  "2", "m");
+                                        //buyContract("CALL", "R_10", initialStake, "-0.5", "5", "t");
+                                    } else if (Math.max(...tickPrices) == price) {
+                                        buyContract("UPORDOWN", symbol[i], initialStake, "+0.2", "-2.47",  "2", "m");
+                                        //buyContract("PUT", "R_10", initialStake, "+0.5", "5", "t");
+                                    }
+                                    //}
+                                }
                                  
-                              }
-
-                            // buyContract("PUT", "R_100", initialStake, "", "5", "t");
-
-                            //if (data.tick) {
-                            //    tickPrices.push(price);
-							//	const n = tickPrices.length;
-                                
-                            //    if ((getLastDigit(tickPrices[n-1]) % 2 == 0) && (getLastDigit(tickPrices[n-2]) % 2 == 0) && (getLastDigit(tickPrices[n-3]) % 2 == 0) && (getLastDigit(tickPrices[n-4]) % 2 == 0) && (getLastDigit(tickPrices[n-5]) % 2 == 0) && (getLastDigit(tickPrices[n-6]) % 2 == 0)) {
-                            //      buyContract("DIGITODD", "R_10", initialStake, "", "1", "t");
-                            //    } else if ((getLastDigit(tickPrices[n-1]) % 2 == 1) && (getLastDigit(tickPrices[n-2]) % 2 == 1) && (getLastDigit(tickPrices[n-3]) % 2 == 1) && (getLastDigit(tickPrices[n-4]) % 2 == 1) && (getLastDigit(tickPrices[n-5]) % 2 == 1) && (getLastDigit(tickPrices[n-6]) % 2 == 1)) {
-                            //      buyContract("DIGITEVEN", "R_10", initialStake, "", "1", "t");
-                            //    }
-
-                            //}
+                            }
                           
                         } else if (x == 1) {
                           	if (data.tick && typeof data.tick.quote !== 'undefined') {
-							    const price = parseFloat(data.tick.quote.toFixed(3));
-								tickPrices.push(price);
-								if (tickPrices.length > 20) tickPrices.shift();
-								const ema20 = EMA(tickPrices, 20);
-								const factor = 0.06126 * tickPrices[tickPrices.length-2] / 100;
-								console.log(tickPrices, ema20);
-								//(Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) ||
-								if (
-									(tickPrices[tickPrices.length-2]*1 > ema20 && tickPrices[tickPrices.length-1]*1 < ema20) ||
-									(tickPrices[tickPrices.length-2]*1 < ema20 && tickPrices[tickPrices.length-1]*1 > ema20)
-								) {
-									buyContract("ACCU", symbol[i], initialStake);
-								}
+                              
                                //if (data.tick) {
 
-                               //   const price = parseFloat(data.tick.quote.toFixed(3));
-                               //   tickPrices.push(price);
-                               //   if (tickPrices.length < 2) return; 
-                               //   const factor = 0.00613 * tickPrices[tickPrices.length-2] / 100;
-								  //console.log(tickPrices, factor);
-                              //    if (Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) {
-                              //      buyContract("ACCU", "R_10", initialStake);
-                              //    }
+                                const price = parseFloat(data.tick.quote.toFixed(3));
+                                tickPrices.push(price);
+                                if (tickPrices.length > 20) tickPrices.shift();
+                                const ema20 = EMA(tickPrices, 20);
+                                const factor = 0.06126 * tickPrices[tickPrices.length-2] / 100;
+                                //(Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) ||
+                                if (
+                                    (tickPrices[tickPrices.length-2]*1 > ema20 && tickPrices[tickPrices.length-1]*1 < ema20)
+                                ) {
+                                    buyContract("PUT", symbol[i], initialStake, "", "", "5", "t");
+                                } else if (
+                                    (tickPrices[tickPrices.length-2]*1 < ema20 && tickPrices[tickPrices.length-1]*1 > ema20)
+                                ) {
+                                    buyContract("CALL", symbol[i], initialStake, "", "", "5", "t");
+                                }
                                  
                               //}
                               
-                              //if (getLastDigit(data.tick.quote) == Math.floor(Math.random() * 10)) {
-                              //    buyContract("DIGITDIFF", symbol[i], initialStake, getLastDigit(data.tick.quote), "1", "t");
-                              //}
-                              
-                              
-                              	//if (getLastDigit(data.tick.quote) == predictor) {
-                                //	match = match + 1;
-                                //} else {
-                                //	match = 0;
-                                //}
-                              
-                              	//if (match == 2) {
-                                //  	buyContract("DIGITDIFF", "R_10", initialStake, "0", "1", "t");
-                                //}
-                              
-                                //if (s.substr(-2) === "00") {
-                                    //buyContract("UPORDOWN", "R_10", initialStake, "0.89",  "2", "m");
-								    //buyContract("UPORDOWN", "R_10", initialStake, "+0.126", "-1.570",  "2", "m");
-                                //}
-                              
-                              	//if (s.substr(-2) === "00") {
-                                //    buyContract("ACCU", "R_10", initialStake);
-                                //}
-
+                                // console.log(getLastDigit(data.tick.quote)*1, predictor, getLastDigit(data.tick.quote)*1 === predictor);
+                                // if (getLastDigit(data.tick.quote)*1 === predictor) {
+                                //     buyContract("DIGITDIFF", symbol[i], initialStake, getLastDigit(data.tick.quote), "1", "t");
+                                // }
                             }
                         }
-
-                        //} 
-
-                        //if (s.substr(-2) === "00") {
-                        //    start_analyzing = true;
-                        //}
-
-                        //if (s.substr(-2) === "50") {
-                        //    start_analyzing = false;
-                        //}
-
                         notify("📈 [" + time + "] " + " Price Analyzing ... [" + getTick(data.tick.quote) + "]", "2000", "#cfe2ff", "left");
 
                     }
@@ -1334,23 +1264,9 @@ input {
                             isAuthorized = false;
                             start_analyzing = true;
                             tickPrices.length = 0
-                            //setTimeout(() => { console.log("Waiting") }, 3000);
-                            //$("#start").trigger("click");
-                            //setTimeout(() => RiseFall(), 1000);
-                            //addResultRow(poc);
-                            //lastContractId = null;
-                            //safeCloseWS();
-                            //autoRestart();
-                          
-                            // Re-subscribe to ticks (keeps bot running)
-                            //ws.send(JSON.stringify({
-                            //    ticks: symbol[i], 
-                            //    subscribe: 1
-                            //}));
-
+ 
                             notify("🔄 Auto Restarting...", "3000", "#cfe2ff", "left");                            
-                            RiseFall();
-							//$("#start").trigger("click");
+                            autoRestart();
                         }
                     }
 
@@ -1365,7 +1281,6 @@ input {
                             subscribe: 1
                         }));
                         start_analyzing = false;
-                        //ticks.length = 0;
                     }
 
 
@@ -1411,16 +1326,3 @@ input {
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
