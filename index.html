@@ -704,11 +704,11 @@ input {
       	<div class="container-box mt-base">
           	<div class="box flex-1 p-0">
           		<label for="stake">Stake <span class="txt-small">(Minimum stake: 0.35$)</span></label>
-            	<input type="decimal" min="0.35" step="0.01" id="stake" placeholder="Minimum stake 0.35$" value="1" oninput="updateInput(this)" disabled />
+            	<input type="decimal" min="0.35" step="0.01" id="stake" placeholder="Minimum stake 0.35$" value="10" oninput="updateInput(this)" disabled />
           	</div>
           	<div class="box flex-1 p-0">
                 <label for="martingale">Martingale <span class="txt-small">(No martingale = 1)</span></label>
-        		<input type="decimal" min="1" step="0.01" id="martingale" placeholder="No martingale is set to 1" value="2.5" oninput="updateInput(this)" disabled />
+        		<input type="decimal" min="1" step="0.01" id="martingale" placeholder="No martingale is set to 1" value="10" oninput="updateInput(this)" disabled />
           	</div>
        
       
@@ -961,6 +961,23 @@ input {
                         },
                     })
                 );
+            } else if (type === "ONETOUCH") {
+                ws.send(
+                    JSON.stringify({
+                        buy: 1,
+                        price: 300,
+                        parameters: {
+                            symbol: symbol,
+                            amount: stake,
+                            basis: "stake",
+                            contract_type: type,
+                            barrier: barrier,
+                            currency: "USD",
+                            duration: duration,
+                            duration_unit: duration_unit,
+                        },
+                    })
+                );
             } else {
                 ws.send(
                     JSON.stringify({
@@ -1061,6 +1078,75 @@ input {
             }
             return ema;
         }
+
+
+        function RSI(prices, period = 14) {
+            if (prices.length < period + 1) return null;
+
+            let gains = 0;
+            let losses = 0;
+
+            for (let i = prices.length - period; i < prices.length; i++) {
+                const diff = prices[i] - prices[i - 1];
+                if (diff >= 0) gains += diff;
+                else losses -= diff;
+            }
+
+            const avgGain = gains / period;
+            const avgLoss = losses / period;
+
+            if (avgLoss === 0) return 100;
+
+            const rs = avgGain / avgLoss;
+            return 100 - (100 / (1 + rs));
+        }
+
+
+        function BB(prices, period = 20, multiplier = 2) {
+            if (prices.length < period) return null;
+
+            const slice = prices.slice(-period);
+
+            const mean = slice.reduce((a, b) => a + b, 0) / period;
+
+            const variance = slice.reduce((sum, price) => {
+                return sum + Math.pow(price - mean, 2);
+            }, 0) / period;
+
+            const stdDev = Math.sqrt(variance);
+
+            return {
+                middle: mean,
+                upper: mean + (multiplier * stdDev),
+                lower: mean - (multiplier * stdDev),
+                width: (multiplier * stdDev) * 2
+            };
+        }
+
+        function AO(prices) {
+            if (prices.length < 34) return null;
+
+            const sma = (arr, period) => {
+                if (arr.length < period) return null;
+                const slice = arr.slice(-period);
+                return slice.reduce((a, b) => a + b, 0) / period;
+            };
+
+            const sma5 = sma(prices, 5);
+            const sma34 = sma(prices, 34);
+
+            if (!sma5 || !sma34) return null;
+
+            return sma5 - sma34;
+        }
+
+
+
+
+
+
+
+
 
       
 		var lowBalance = 0;
@@ -1182,10 +1268,25 @@ input {
                         connectButton.textContent = 'Disconnect';
                         ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
                         ws.send(JSON.stringify({ ticks: symbol[i], subscribe: 1 }));
+                        ws.send(JSON.stringify({
+                            ticks_history: symbol[i],   // your symbol
+                            adjust_start_time: 1,
+                            count: 100,              // how many past ticks you want
+                            end: "latest",
+                            style: "ticks"
+                        }));
                     }
 
                     if (data.msg_type === 'balance' && data.balance && typeof data.balance.balance !== 'undefined') {
                         document.getElementById('balance').textContent = parseFloat(data.balance.balance).toFixed(2);
+                    }
+
+                    if (data.msg_type === "history") {
+                        if (data.history && data.history.prices) {
+
+                            tickPrices = data.history.prices.map(p => parseFloat(p));
+                            console.log("Loaded history:", tickPrices.length);
+                        }
                     }
                     
 
@@ -1227,18 +1328,37 @@ input {
 
                                 const price = parseFloat(data.tick.quote.toFixed(3));
                                 tickPrices.push(price);
-                                if (tickPrices.length > 20) tickPrices.shift();
-                                const ema20 = EMA(tickPrices, 20);
-                                const factor = 0.06126 * tickPrices[tickPrices.length-2] / 100;
-                                //(Math.abs(tickPrices[tickPrices.length-2]*1 - tickPrices[tickPrices.length-1]*1) >= factor) ||
+                                if (tickPrices.length > 100) tickPrices.shift();
+
+                                const currentAO = AO(tickPrices);
+                                const previousAO = AO(tickPrices.slice(0, -1));
+                                const ema10 = EMA(tickPrices, 10);
+
+                                if (!currentAO || !previousAO || !ema10) return;
+
+                                // Volatility filter
+                                const recent = tickPrices.slice(-20);
+                                const range = Math.max(...recent) - Math.min(...recent);
+                                if (range < 0.30) return;
+
+                                // CALL
                                 if (
-                                    (tickPrices[tickPrices.length-2]*1 > ema20 && tickPrices[tickPrices.length-1]*1 < ema20)
+                                    currentAO > 0 &&
+                                    currentAO > previousAO &&
+                                    price > ema10
                                 ) {
-                                    buyContract("PUT", symbol[i], initialStake, "", "", "5", "t");
-                                } else if (
-                                    (tickPrices[tickPrices.length-2]*1 < ema20 && tickPrices[tickPrices.length-1]*1 > ema20)
+                                    // buyContract("CALL", symbol[i], initialStake, "", "", "1", "m");
+                                    buyContract("ASIANU", symbol[i], initialStake, "", "", "10", "t");
+                                }
+
+                                // PUT
+                                if (
+                                    currentAO < 0 &&
+                                    currentAO < previousAO &&
+                                    price < ema10
                                 ) {
-                                    buyContract("CALL", symbol[i], initialStake, "", "", "5", "t");
+                                    // buyContract("PUT", symbol[i], initialStake, "", "", "1", "m");
+                                    buyContract("ASIAND", symbol[i], initialStake, "", "", "10", "t");
                                 }
                                  
                               //}
@@ -1326,4 +1446,3 @@ input {
 </body>
 
 </html>
-
