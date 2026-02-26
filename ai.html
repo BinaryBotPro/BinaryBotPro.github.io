@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ultra Pro R_100 AI</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0"></script>
+
+    <style>
+        body {
+            background: radial-gradient(circle at top, #0f172a, #000);
+            font-family: monospace;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 150, 0.15);
+            box-shadow: 0 0 20px rgba(0, 255, 150, 0.05);
+        }
+
+        .logbox {
+            background: #050b18;
+        }
+
+        .glow {
+            box-shadow: 0 0 12px rgba(0, 255, 150, 0.35);
+        }
+    </style>
+</head>
+
+<body class="text-green-400 p-4 sm:p-6">
+
+    <h1 class="text-2xl sm:text-3xl font-bold mb-6 text-green-300 glow text-center sm:text-left">
+        BINARY BOT PRO AI
+    </h1>
+
+    <!-- GRID RESPONSIVE -->
+    <div class="
+        grid gap-4 sm:gap-6
+        grid-cols-1
+        sm:grid-cols-2
+        xl:grid-cols-4
+        mb-6">
+        <!-- CONTROL -->
+        <div class="card p-4 sm:p-5 rounded-xl">
+            <h2 class="text-green-300 mb-2 text-sm sm:text-base">CONTROL</h2>
+            <input id="token" placeholder="API Token" class="w-full text-black p-2 mb-3 rounded text-sm">
+
+            <button onclick="startBot()"
+                class="bg-green-600 hover:bg-green-500 active:scale-95 transition w-full py-2 rounded glow text-sm sm:text-base">
+                START BOT
+            </button>
+
+            <div class="mt-2 text-xs sm:text-sm">
+                Status: <span id="status">Idle</span>
+            </div>
+        </div>
+
+        <!-- ACCOUNT -->
+        <div class="card p-4 sm:p-5 rounded-xl">
+            <h2 class="text-green-300 mb-2 text-sm sm:text-base">ACCOUNT</h2>
+            Balance: <span id="balance">0</span><br>
+            PnL: <span id="pnl">0</span><br>
+            Drawdown: <span id="dd">0</span>
+        </div>
+
+        <!-- MODEL -->
+        <div class="card p-4 sm:p-5 rounded-xl">
+            <h2 class="text-green-300 mb-2 text-sm sm:text-base">MODEL</h2>
+            Prob: <span id="prob">0</span><br>
+            Stake: <span id="stakeView">1</span><br>
+            Loss Streak: <span id="ls">0</span>
+        </div>
+
+        <!-- PERFORMANCE -->
+        <div class="card p-4 sm:p-5 rounded-xl">
+            <h2 class="text-green-300 mb-2 text-sm sm:text-base">PERFORMANCE</h2>
+            Trades: <span id="trades">0</span><br>
+            Wins: <span id="wins">0</span><br>
+            Winrate: <span id="wr">0%</span>
+        </div>
+
+
+
+    </div>
+
+    <!-- LOG FULL WIDTH -->
+    <div class="card logbox p-4 rounded-xl h-64 sm:h-80 overflow-y-auto text-xs sm:text-sm" id="log"></div>
+
+    <script>
+        const APP_ID = 1089;
+        const SYMBOL = "R_100";
+
+        let ws, model, prices = [];
+        let balance = 0, pnl = 0, peak = 0, maxDD = 0;
+        let trades = 0, wins = 0;
+        let stake = 1, baseStake = 1, lossStreak = 0;
+        let isTrading = false, isReady = false;
+
+        /* ========= LOG ========= */
+
+        function log(msg, color = "text-green-400") {
+            const el = document.getElementById("log");
+            el.innerHTML += `<div class="${color}">
+    ${new Date().toLocaleTimeString()} ▸ ${msg}
+    </div>`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        /* ========= MODEL ========= */
+
+        async function createModel() {
+            model = tf.sequential();
+            model.add(tf.layers.dense({ units: 64, inputShape: [5], activation: 'relu' }));
+            model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+            model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
+            model.compile({ optimizer: tf.train.adam(0.0005), loss: 'binaryCrossentropy' });
+        }
+
+        /* ========= FEATURE ========= */
+
+        function getFeature() {
+            if (prices.length < 50) return null;
+            const slice = prices.slice(-50);
+            let returns = [];
+            for (let i = 1; i < slice.length; i++)
+                returns.push((slice[i] - slice[i - 1]) / slice[i - 1]);
+
+            const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+            const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length;
+            const vol = Math.sqrt(variance);
+            const momentum = slice[slice.length - 1] - slice[0];
+            const shortMA = slice.slice(-5).reduce((a, b) => a + b, 0) / 5;
+            const longMA = slice.reduce((a, b) => a + b, 0) / slice.length;
+            const trend = shortMA - longMA;
+            const lastReturn = returns[returns.length - 1];
+
+            return { feat: [mean, vol, momentum, trend, lastReturn], vol };
+        }
+
+        /* ========= TRAIN ========= */
+
+        async function trainModel() {
+            if (prices.length < 100) return;
+            let xs = [], ys = [];
+            for (let i = 50; i < prices.length - 1; i++) {
+                const slice = prices.slice(i - 50, i);
+                let returns = [];
+                for (let j = 1; j < slice.length; j++)
+                    returns.push((slice[j] - slice[j - 1]) / slice[j - 1]);
+
+                const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+                const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length;
+                const vol = Math.sqrt(variance);
+                const momentum = slice[slice.length - 1] - slice[0];
+                const shortMA = slice.slice(-5).reduce((a, b) => a + b, 0) / 5;
+                const longMA = slice.reduce((a, b) => a + b, 0) / slice.length;
+                const trend = shortMA - longMA;
+                const lastReturn = returns[returns.length - 1];
+
+                xs.push([mean, vol, momentum, trend, lastReturn]);
+                ys.push([prices[i] > prices[i - 1] ? 1 : 0]);
+            }
+            const X = tf.tensor2d(xs);
+            const Y = tf.tensor2d(ys);
+            await model.fit(X, Y, { epochs: 5, batchSize: 32, verbose: 0 });
+            X.dispose(); Y.dispose();
+        }
+
+        /* ========= PREDICT ========= */
+
+        function predict() {
+            if (!isReady || isTrading) return;
+            const obj = getFeature();
+            if (!obj) return;
+            const { feat, vol } = obj;
+
+            const prob = tf.tidy(() => {
+                const xs = tf.tensor2d([feat]);
+                return model.predict(xs).dataSync()[0];
+            });
+
+            document.getElementById("prob").innerText = prob.toFixed(3);
+            if (vol < 0.00005) return;
+
+            if (prob > 0.55) buy("CALL");
+            else if (prob < 0.45) buy("PUT");
+        }
+
+        /* ========= BUY ========= */
+
+        function buy(type) {
+            if (!ws || ws.readyState !== 1) return;
+            isTrading = true;
+            document.getElementById("status").innerText = "Trading";
+            log("BUY " + type + " | Stake " + stake.toFixed(2), "text-yellow-400");
+
+            ws.send(JSON.stringify({
+                buy: 1,
+                price: stake,
+                parameters: {
+                    amount: stake,
+                    basis: "stake",
+                    contract_type: type,
+                    currency: "USD",
+                    duration: 3,
+                    duration_unit: "t",
+                    symbol: SYMBOL
+                }
+            }));
+        }
+
+        /* ========= STATS ========= */
+
+        function updateStats(profit) {
+            trades++;
+            if (profit > 0) wins++;
+            pnl += profit;
+            if (pnl > peak) peak = pnl;
+            let dd = peak - pnl;
+            if (dd > maxDD) maxDD = dd;
+
+            document.getElementById("pnl").innerText = pnl.toFixed(2);
+            document.getElementById("pnl").className = pnl >= 0 ? "text-green-400" : "text-red-500";
+
+            document.getElementById("trades").innerText = trades;
+            document.getElementById("wins").innerText = wins;
+
+            let wr = ((wins / trades) * 100) || 0;
+            document.getElementById("wr").innerText = wr.toFixed(1) + "%";
+            document.getElementById("wr").className = wr >= 55 ? "text-green-400" : "text-red-500";
+
+            document.getElementById("dd").innerText = maxDD.toFixed(2);
+
+            log("Result " + profit.toFixed(2),
+                profit > 0 ? "text-green-400" : "text-red-500");
+        }
+
+        /* ========= START ========= */
+
+        async function startBot() {
+            document.getElementById("status").innerText = "Loading";
+            await createModel();
+            const token = document.getElementById("token").value;
+
+            ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=" + APP_ID);
+            ws.onopen = () => ws.send(JSON.stringify({ authorize: token }));
+
+            ws.onmessage = async (msg) => {
+                const data = JSON.parse(msg.data);
+                if (data.error) {
+                    log("API ERROR: " + data.error.message, "text-red-500");
+                    isTrading = false;
+                    document.getElementById("status").innerText = "Live";
+                    return;
+                }
+                if (!data.msg_type) return;
+
+                switch (data.msg_type) {
+
+                    case "authorize":
+                        log("Authorized", "text-green-400");
+                        // ✅ SUBSCRIBE BALANCE
+                        ws.send(JSON.stringify({
+                            balance: 1,
+                            subscribe: 1
+                        }));
+                        ws.send(JSON.stringify({ ticks: SYMBOL, subscribe: 1 }));
+                        ws.send(JSON.stringify({
+                            ticks_history: SYMBOL,
+                            count: 1000,
+                            end: "latest",
+                            style: "ticks"
+                        }));
+                        break;
+
+                    case "history":
+                        prices = data.history.prices.map(p => parseFloat(p));
+                        log("Training model...");
+                        await trainModel();
+                        isReady = true;
+                        document.getElementById("status").innerText = "Live";
+                        log("Model Ready", "text-green-400");
+                        break;
+                    case "balance":
+                        if (data.balance && data.balance.balance !== undefined) {
+                            balance = parseFloat(data.balance.balance);
+                            document.getElementById("balance").innerText = balance.toFixed(2);
+                        }
+                        break;
+                    case "tick":
+                        prices.push(data.tick.quote);
+                        if (prices.length > 1200) prices.shift();
+                        predict();
+                        break;
+
+                    case "buy":
+                        ws.send(JSON.stringify({
+                            proposal_open_contract: 1,
+                            contract_id: data.buy.contract_id,
+                            subscribe: 1
+                        }));
+                        break;
+
+                    case "proposal_open_contract":
+                        if (data.proposal_open_contract.is_sold) {
+                            let profit = parseFloat(data.proposal_open_contract.profit);
+
+                            if (profit > 0) { stake = baseStake; lossStreak = 0; }
+                            else { lossStreak++; stake = Math.min(stake * 2.1); }
+
+                            updateStats(profit);
+                            document.getElementById("stakeView").innerText = stake;
+                            document.getElementById("ls").innerText = lossStreak;
+                            isTrading = false;
+                        }
+                        break;
+                }
+            };
+        }
+    </script>
+
+</body>
+
+</html>
