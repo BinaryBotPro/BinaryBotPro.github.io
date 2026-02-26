@@ -1337,21 +1337,12 @@ input {
                                 const bbUpper = BB(tickPrices).upper;
                                 const bbMid = BB(tickPrices).middle;
                                 const bbLower = BB(tickPrices).lower;
-
-                                console.log(prevPrice, bbMid);
-
-                                // if (!currentAO || !previousAO || !ema10) return;
-
-                                // Volatility filter
-                                const recent = tickPrices.slice(-20);
-                                const range = Math.max(...recent) - Math.min(...recent);
-                                // if (range < 0.30) return;
-
+								
                                 // CALL
                                 if (
-                                    // currentAO > 0 &&
-                                    // currentAO > previousAO &&
-                                    // price > ema10 &&
+                                    currentAO > 0 &&
+                                    currentAO > previousAO &&
+                                    price > ema10 &&
                                     prevPrice > bbUpper
                                 ) {
                                     // buyContract("CALL", symbol[i], initialStake, "", "", "1", "m");
@@ -1360,9 +1351,9 @@ input {
 
                                 // PUT
                                 if (
-                                    // currentAO < 0 &&
-                                    // currentAO < previousAO &&
-                                    // price < ema10 && 
+                                	currentAO < 0 &&
+                                    currentAO < previousAO &&
+                                    price < ema10 && 
                                     prevPrice < bbLower
                                 ) {
                                     // buyContract("PUT", symbol[i], initialStake, "", "", "1", "m");
@@ -1454,3 +1445,4 @@ input {
 </body>
 
 </html>
+
