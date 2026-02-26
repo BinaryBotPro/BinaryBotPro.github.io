@@ -1334,9 +1334,12 @@ input {
                                 const currentAO = AO(tickPrices);
                                 const previousAO = AO(tickPrices.slice(0, -1));
                                 const ema10 = EMA(tickPrices, 10);
-                                const bbUpper = BB(tickPrices).upper;
-                                const bbMid = BB(tickPrices).middle;
-                                const bbLower = BB(tickPrices).lower;
+
+								const bb = BB(tickPrices);
+								if (!bb) return;
+								const bbUpper = bb.upper;
+								const bbLower = bb.lower;
+                                const bbMid = bb.middle;
 								
                                 // CALL
                                 if (
@@ -1445,6 +1448,7 @@ input {
 </body>
 
 </html>
+
 
 
 
