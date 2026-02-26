@@ -1271,7 +1271,7 @@ input {
                         ws.send(JSON.stringify({
                             ticks_history: symbol[i],   // your symbol
                             adjust_start_time: 1,
-                            count: 100,              // how many past ticks you want
+                            count: 1000,              // how many past ticks you want
                             end: "latest",
                             style: "ticks"
                         }));
@@ -1329,7 +1329,7 @@ input {
                                 const price = parseFloat(data.tick.quote.toFixed(3));
                                 const prevPrice = tickPrices[tickPrices.length-2]*1;
                                 tickPrices.push(price);
-                                if (tickPrices.length > 100) tickPrices.shift();
+                                if (tickPrices.length > 1000) tickPrices.shift();
 
                                 const currentAO = AO(tickPrices);
                                 const previousAO = AO(tickPrices.slice(0, -1));
@@ -1445,5 +1445,6 @@ input {
 </body>
 
 </html>
+
 
 
