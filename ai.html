@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Ultra Pro R_100 AI</title>
+    <title>Binary Bot Pro AI</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0"></script>
@@ -99,7 +99,8 @@
         let trades = 0, wins = 0;
         let stake = 1, baseStake = 1, lossStreak = 0;
         let isTrading = false, isReady = false;
-
+        let tickCounter = 0;
+        let retrainInterval = 300;
         /* ========= LOG ========= */
 
         function log(msg, color = "text-green-400") {
@@ -114,31 +115,77 @@
 
         async function createModel() {
             model = tf.sequential();
-            model.add(tf.layers.dense({ units: 64, inputShape: [5], activation: 'relu' }));
-            model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
-            model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
-            model.compile({ optimizer: tf.train.adam(0.0005), loss: 'binaryCrossentropy' });
+
+            model.add(tf.layers.dense({
+                units: 128,
+                inputShape: [5],
+                activation: 'relu',
+                kernelInitializer: 'heNormal'
+            }));
+
+            model.add(tf.layers.batchNormalization());
+            model.add(tf.layers.dropout({ rate: 0.25 }));
+
+            model.add(tf.layers.dense({
+                units: 64,
+                activation: 'relu'
+            }));
+
+            model.add(tf.layers.dropout({ rate: 0.2 }));
+
+            model.add(tf.layers.dense({
+                units: 32,
+                activation: 'relu'
+            }));
+
+            model.add(tf.layers.dense({
+                units: 1,
+                activation: 'sigmoid'
+            }));
+
+            model.compile({
+                optimizer: tf.train.adam(0.00025),
+                loss: 'binaryCrossentropy',
+                metrics: ['accuracy']
+            });
         }
+
 
         /* ========= FEATURE ========= */
 
         function getFeature() {
-            if (prices.length < 50) return null;
-            const slice = prices.slice(-50);
+            if (prices.length < 60) return null;
+
+            const slice = prices.slice(-60);
             let returns = [];
-            for (let i = 1; i < slice.length; i++)
+
+            for (let i = 1; i < slice.length; i++) {
                 returns.push((slice[i] - slice[i - 1]) / slice[i - 1]);
+            }
 
             const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
             const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length;
             const vol = Math.sqrt(variance);
-            const momentum = slice[slice.length - 1] - slice[0];
-            const shortMA = slice.slice(-5).reduce((a, b) => a + b, 0) / 5;
-            const longMA = slice.reduce((a, b) => a + b, 0) / slice.length;
-            const trend = shortMA - longMA;
-            const lastReturn = returns[returns.length - 1];
 
-            return { feat: [mean, vol, momentum, trend, lastReturn], vol };
+            const shortMA = slice.slice(-5).reduce((a, b) => a + b, 0) / 5;
+            const midMA = slice.slice(-15).reduce((a, b) => a + b, 0) / 15;
+            const longMA = slice.reduce((a, b) => a + b, 0) / slice.length;
+
+            const trendStrength = (shortMA - longMA) / longMA;
+            const momentum = (slice[slice.length - 1] - slice[0]) / slice[0];
+            const acceleration = (shortMA - midMA);
+
+            // 🔥 Normalize feature
+            return {
+                feat: [
+                    mean * 1000,
+                    vol * 1000,
+                    trendStrength * 100,
+                    momentum * 100,
+                    acceleration * 100
+                ],
+                vol
+            };
         }
 
         /* ========= TRAIN ========= */
@@ -166,7 +213,13 @@
             }
             const X = tf.tensor2d(xs);
             const Y = tf.tensor2d(ys);
-            await model.fit(X, Y, { epochs: 5, batchSize: 32, verbose: 0 });
+            await model.fit(X, Y, {
+                epochs: 18,
+                batchSize: 32,
+                shuffle: true,
+                validationSplit: 0.2,
+                verbose: 0
+            });
             X.dispose(); Y.dispose();
         }
 
@@ -174,8 +227,10 @@
 
         function predict() {
             if (!isReady || isTrading) return;
+
             const obj = getFeature();
             if (!obj) return;
+
             const { feat, vol } = obj;
 
             const prob = tf.tidy(() => {
@@ -184,10 +239,42 @@
             });
 
             document.getElementById("prob").innerText = prob.toFixed(3);
-            if (vol < 0.00005) return;
 
-            if (prob > 0.55) buy("CALL");
-            else if (prob < 0.45) buy("PUT");
+            // 🔥 กรองตลาดนิ่ง
+            if (vol < 0.00006) return;
+
+            // === TREND FILTER ===
+            const slice = prices.slice(-20);
+            const shortMA = slice.slice(-5).reduce((a,b)=>a+b,0)/5;
+            const longMA = slice.reduce((a,b)=>a+b,0)/slice.length;
+            const trendUp = shortMA > longMA;
+            const trendDown = shortMA < longMA;
+
+            // =============================
+            // 🔥 MODE 1: STRONG SIGNAL
+            // =============================
+            if (prob > 0.65) {
+                buy("CALL");
+                return;
+            }
+
+            if (prob < 0.35) {
+                buy("PUT");
+                return;
+            }
+
+            // =============================
+            // 🔥 MODE 2: TREND FOLLOW ENTRY
+            // =============================
+            if (prob > 0.55 && trendUp) {
+                buy("CALL");
+                return;
+            }
+
+            if (prob < 0.45 && trendDown) {
+                buy("PUT");
+                return;
+            }
         }
 
         /* ========= BUY ========= */
@@ -196,7 +283,7 @@
             if (!ws || ws.readyState !== 1) return;
             isTrading = true;
             document.getElementById("status").innerText = "Trading";
-            log("BUY " + type + " | Stake " + stake.toFixed(2), "text-yellow-400");
+            log("BUY " + type + " | Stake " + stake, "text-yellow-400");
 
             ws.send(JSON.stringify({
                 buy: 1,
@@ -294,6 +381,15 @@
                     case "tick":
                         prices.push(data.tick.quote);
                         if (prices.length > 1200) prices.shift();
+
+                        tickCounter++;
+
+                        if (tickCounter >= retrainInterval) {
+                            tickCounter = 0;
+                            log("Retraining Model...", "text-blue-400");
+                            await trainModel();
+                        }
+
                         predict();
                         break;
 
@@ -310,7 +406,7 @@
                             let profit = parseFloat(data.proposal_open_contract.profit);
 
                             if (profit > 0) { stake = baseStake; lossStreak = 0; }
-                            else { lossStreak++; stake = Math.min(stake * 2.1); }
+                            else { lossStreak++; stake = Math.min(stake * 2.1).toFixed(2); }
 
                             updateStats(profit);
                             document.getElementById("stakeView").innerText = stake;
