@@ -111,116 +111,56 @@
             el.scrollTop = el.scrollHeight;
         }
 
-        /* ========= MODEL ========= */
-
-        async function createModel() {
-            model = tf.sequential();
-
-            model.add(tf.layers.dense({
-                units: 128,
-                inputShape: [5],
-                activation: 'relu',
-                kernelInitializer: 'heNormal'
-            }));
-
-            model.add(tf.layers.batchNormalization());
-            model.add(tf.layers.dropout({ rate: 0.25 }));
-
-            model.add(tf.layers.dense({
-                units: 64,
-                activation: 'relu'
-            }));
-
-            model.add(tf.layers.dropout({ rate: 0.2 }));
-
-            model.add(tf.layers.dense({
-                units: 32,
-                activation: 'relu'
-            }));
-
-            model.add(tf.layers.dense({
-                units: 1,
-                activation: 'sigmoid'
-            }));
-
-            model.compile({
-                optimizer: tf.train.adam(0.00025),
-                loss: 'binaryCrossentropy',
-                metrics: ['accuracy']
-            });
-        }
-
-
-        /* ========= FEATURE ========= */
-
-        function getFeature() {
-            if (prices.length < 60) return null;
-
-            const slice = prices.slice(-60);
-            let returns = [];
-
-            for (let i = 1; i < slice.length; i++) {
-                returns.push((slice[i] - slice[i - 1]) / slice[i - 1]);
-            }
-
-            const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
-            const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length;
-            const vol = Math.sqrt(variance);
-
-            const shortMA = slice.slice(-5).reduce((a, b) => a + b, 0) / 5;
-            const midMA = slice.slice(-15).reduce((a, b) => a + b, 0) / 15;
-            const longMA = slice.reduce((a, b) => a + b, 0) / slice.length;
-
-            const trendStrength = (shortMA - longMA) / longMA;
-            const momentum = (slice[slice.length - 1] - slice[0]) / slice[0];
-            const acceleration = (shortMA - midMA);
-
-            // 🔥 Normalize feature
-            return {
-                feat: [
-                    mean * 1000,
-                    vol * 1000,
-                    trendStrength * 100,
-                    momentum * 100,
-                    acceleration * 100
-                ],
-                vol
-            };
-        }
-
-        /* ========= TRAIN ========= */
-
-        async function trainModel() {
-            if (prices.length < 100) return;
-            let xs = [], ys = [];
-            for (let i = 50; i < prices.length - 1; i++) {
-                const slice = prices.slice(i - 50, i);
-                let returns = [];
-                for (let j = 1; j < slice.length; j++)
-                    returns.push((slice[j] - slice[j - 1]) / slice[j - 1]);
-
-                const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
-                const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length;
-                const vol = Math.sqrt(variance);
-                const momentum = slice[slice.length - 1] - slice[0];
-                const shortMA = slice.slice(-5).reduce((a, b) => a + b, 0) / 5;
-                const longMA = slice.reduce((a, b) => a + b, 0) / slice.length;
-                const trend = shortMA - longMA;
-                const lastReturn = returns[returns.length - 1];
-
-                xs.push([mean, vol, momentum, trend, lastReturn]);
-                ys.push([prices[i] > prices[i - 1] ? 1 : 0]);
-            }
-            const X = tf.tensor2d(xs);
-            const Y = tf.tensor2d(ys);
-            await model.fit(X, Y, {
-                epochs: 18,
-                batchSize: 32,
-                shuffle: true,
-                validationSplit: 0.2,
-                verbose: 0
-            });
-            X.dispose(); Y.dispose();
+        /* ========= MODEL ========= */ 
+        async function createModel() { 
+            model = tf.sequential(); 
+            model.add(tf.layers.dense({ units: 64, inputShape: [5], activation: 'relu' })); 
+            model.add(tf.layers.dense({ units: 32, activation: 'relu' })); 
+            model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' })); 
+            model.compile({ optimizer: tf.train.adam(0.0005), loss: 'binaryCrossentropy' }); 
+        } 
+        
+        /* ========= FEATURE ========= */ 
+        function getFeature() { 
+            if (prices.length < 50) return null; 
+            const slice = prices.slice(-50); 
+            let returns = []; 
+            for (let i = 1; i < slice.length; i++) 
+                returns.push((slice[i] - slice[i - 1]) / slice[i - 1]); 
+            const mean = returns.reduce((a, b) => a + b, 0) / returns.length; 
+            const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length; 
+            const vol = Math.sqrt(variance); const momentum = slice[slice.length - 1] - slice[0]; 
+            const shortMA = slice.slice(-5).reduce((a, b) => a + b, 0) / 5; 
+            const longMA = slice.reduce((a, b) => a + b, 0) / slice.length; 
+            const trend = shortMA - longMA; 
+            const lastReturn = returns[returns.length - 1]; 
+            return { feat: [mean, vol, momentum, trend, lastReturn], vol }; 
+        } 
+            
+        /* ========= TRAIN ========= */ 
+        async function trainModel() { 
+            if (prices.length < 100) return; 
+            let xs = [], ys = []; 
+            for (let i = 50; i < prices.length - 1; i++) { 
+                const slice = prices.slice(i - 50, i); 
+                let returns = []; 
+                for (let j = 1; j < slice.length; j++) 
+                    returns.push((slice[j] - slice[j - 1]) / slice[j - 1]); 
+                const mean = returns.reduce((a, b) => a + b, 0) / returns.length; 
+                const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length; 
+                const vol = Math.sqrt(variance); 
+                const momentum = slice[slice.length - 1] - slice[0]; 
+                const shortMA = slice.slice(-5).reduce((a, b) => a + b, 0) / 5; 
+                const longMA = slice.reduce((a, b) => a + b, 0) / slice.length; 
+                const trend = shortMA - longMA; 
+                const lastReturn = returns[returns.length - 1]; 
+                xs.push([mean, vol, momentum, trend, lastReturn]); 
+                ys.push([prices[i] > prices[i - 1] ? 1 : 0]); 
+            } 
+            const X = tf.tensor2d(xs); 
+            const Y = tf.tensor2d(ys); 
+            await model.fit(X, Y, { epochs: 5, batchSize: 32, verbose: 0 }); 
+            X.dispose(); Y.dispose(); 
         }
 
         /* ========= PREDICT ========= */
@@ -245,8 +185,8 @@
 
             // === TREND FILTER ===
             const slice = prices.slice(-20);
-            const shortMA = slice.slice(-5).reduce((a,b)=>a+b,0)/5;
-            const longMA = slice.reduce((a,b)=>a+b,0)/slice.length;
+            const shortMA = slice.slice(-5).reduce((a, b) => a + b, 0) / 5;
+            const longMA = slice.reduce((a, b) => a + b, 0) / slice.length;
             const trendUp = shortMA > longMA;
             const trendDown = shortMA < longMA;
 
