@@ -1346,7 +1346,7 @@ input {
                                     prevPrice > bbUpper
                                 ) {
                                     // buyContract("CALL", symbol[i], initialStake, "", "", "1", "m");
-                                    buyContract("ASIAND", symbol[i], initialStake, "", "", "10", "t");
+                                    buyContract("CALL", symbol[i], initialStake, "", "", "5", "t");
                                 }
 
                                 // PUT
@@ -1357,7 +1357,7 @@ input {
                                     prevPrice < bbLower
                                 ) {
                                     // buyContract("PUT", symbol[i], initialStake, "", "", "1", "m");
-                                    buyContract("ASIANU", symbol[i], initialStake, "", "", "10", "t");
+                                    buyContract("PUT", symbol[i], initialStake, "", "", "5", "t");
                                 }
                                  
                               //}
@@ -1379,7 +1379,7 @@ input {
                         if (poc.is_sold) {
                             addResultRow(poc);
                             lastContractId = null;
-                            ws.close();
+                            //ws.close();
                             isAuthorized = false;
                             start_analyzing = true;
                             tickPrices.length = 0
@@ -1445,6 +1445,7 @@ input {
 </body>
 
 </html>
+
 
 
 
