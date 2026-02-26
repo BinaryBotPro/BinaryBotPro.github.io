@@ -1340,8 +1340,8 @@ input {
 								
                                 // CALL
                                 if (
-                                    currentAO > 0 &&
-                                    currentAO > previousAO &&
+                                    //currentAO > 0 &&
+                                    //currentAO > previousAO &&
                                     price > ema10 &&
                                     prevPrice > bbUpper
                                 ) {
@@ -1351,8 +1351,8 @@ input {
 
                                 // PUT
                                 if (
-                                	currentAO < 0 &&
-                                    currentAO < previousAO &&
+                                	//currentAO < 0 &&
+                                    //currentAO < previousAO &&
                                     price < ema10 && 
                                     prevPrice < bbLower
                                 ) {
@@ -1445,4 +1445,5 @@ input {
 </body>
 
 </html>
+
 
