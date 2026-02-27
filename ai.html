@@ -258,17 +258,17 @@
             if (!isReady || isTrading) return;
             if (vol < 0.0001) return; 
             const isOversold = rsi < 30 && roc < -0.02;
-            const downTrendWeakening = emaFast < emaSlow && slope > -0.02; // เทรนด์ขาลงแต่ความชันเริ่มลดลง
+            const upTrend = emaFast > emaSlow && slope > 0.02; // เทรนด์ขาลงแต่ความชันเริ่มลดลง
             const isOverbought = rsi > 70 && roc > 0.02;
-            const upTrendWeakening = emaFast > emaSlow && slope < 0.02; // เทรนด์ขาขึ้นแต่ความชันเริ่มลดลง
+            const downTrend = emaFast < emaSlow && slope < -0.02; // เทรนด์ขาขึ้นแต่ความชันเริ่มลดลง
             
-            document.getElementById("prob").innerText = `[CALL] ${isOversold?1:0}${isOversold?1:0} | [PUT] ${isOverbought?1:0}${upTrendWeakening?1:0}`;
-            if (isOversold && downTrendWeakening) {
+            document.getElementById("prob").innerText = `[CALL] ${isOversold?1:0}${upTrend?1:0} | [PUT] ${isOverbought?1:0}${downTrend?1:0}`;
+            if (isOversold && upTrend) {
                 buy("CALL");
                 return;
             }
            
-            if (isOverbought && upTrendWeakening) {
+            if (isOverbought && downTrend) {
                 buy("PUT");
                 return;
             }
