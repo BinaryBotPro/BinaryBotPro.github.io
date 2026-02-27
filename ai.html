@@ -205,42 +205,14 @@
                 (p[p.length-3] - p[p.length-4]);
 
             // =============================
-            // 🔥 4. Confidence Score
-            // =============================
-            let confidence = 0;
-
-            if (prob > 0.55) confidence += 1;
-            if (prob > 0.60) confidence += 1;
-            if (strongUp && prob > 0.53) confidence += 1;
-            if (momentum > 0) confidence += 1;
-
-            if (prob < 0.45) confidence -= 1;
-            if (prob < 0.40) confidence -= 1;
-            if (strongDown && prob < 0.47) confidence -= 1;
-            if (momentum < 0) confidence -= 1;
-
-            // =============================
-            // 🔥 5. Dynamic Entry
-            // =============================
-            if (confidence >= 2) {
-                buy("CALL");
-                return;
-            }
-
-            if (confidence <= -2) {
-                buy("PUT");
-                return;
-            }
-
-            // =============================
             // 🔥 6. Micro Entry Boost (เข้าเพิ่ม)
             // =============================
-            if (prob > 0.57 && momentum > 0) {
+            if (prob > 0.55 && momentum > 0 && strongUp) {
                 buy("CALL");
                 return;
             }
 
-            if (prob < 0.43 && momentum < 0) {
+            if (prob < 0.45 && momentum < 0 && strongDown) {
                 buy("PUT");
                 return;
             }
