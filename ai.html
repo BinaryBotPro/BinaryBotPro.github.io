@@ -254,17 +254,20 @@
             const rsi = getRSI(14);
             const roc = getROC(5);
             const trendStrength = Math.abs(emaFast - emaSlow);
-            document.getElementById("prob").innerText = `Slope: ${slope.toFixed(4)} | RSI: ${rsi.toFixed(2)}`;
+            
             if (!isReady || isTrading) return;
             if (vol < 0.0001) return; 
             const isOversold = rsi < 30 && roc < -0.02;
             const downTrendWeakening = emaFast < emaSlow && slope > -0.02; // เทรนด์ขาลงแต่ความชันเริ่มลดลง
+            const isOverbought = rsi > 70 && roc > 0.02;
+            const upTrendWeakening = emaFast > emaSlow && slope < 0.02; // เทรนด์ขาขึ้นแต่ความชันเริ่มลดลง
+            
+            document.getElementById("prob").innerText = `CALL: ${isOversold?1:0}${isOversold?1:0} | PUT: ${isOverbought?1:0}${upTrendWeakening?1:0}`;
             if (isOversold && downTrendWeakening) {
                 buy("CALL");
                 return;
             }
-            const isOverbought = rsi > 70 && roc > 0.02;
-            const upTrendWeakening = emaFast > emaSlow && slope < 0.02; // เทรนด์ขาขึ้นแต่ความชันเริ่มลดลง
+           
             if (isOverbought && upTrendWeakening) {
                 buy("PUT");
                 return;
