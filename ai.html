@@ -262,13 +262,13 @@
             const isOverbought = rsi > 70 && roc > 0.02;
             const downTrend = emaFast < emaSlow && slope < -0.02; // เทรนด์ขาขึ้นแต่ความชันเริ่มลดลง
             
-            document.getElementById("prob").innerText = `[CALL] ${isOversold?1:0}${upTrend?1:0} | [PUT] ${isOverbought?1:0}${downTrend?1:0}`;
-            if (isOversold && upTrend) {
+            document.getElementById("prob").innerText = `[CALL] ${isOversold?1:0}${downTrend?1:0} | [PUT] ${isOverbought?1:0}${upTrend?1:0}`;
+            if (isOversold && downTrend) {
                 buy("CALL");
                 return;
             }
            
-            if (isOverbought && downTrend) {
+            if (isOverbought && upTrend) {
                 buy("PUT");
                 return;
             }
