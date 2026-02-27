@@ -288,8 +288,8 @@
                     basis: "stake",
                     contract_type: type,
                     currency: "USD",
-                    duration: 1,
-                    duration_unit: "m",
+                    duration: 10,
+                    duration_unit: "t",
                     symbol: SYMBOL
                 }
             }));
@@ -412,7 +412,14 @@
 
                         predict();
                         break;
-
+                        
+                    case "proposal":
+                        ws.send(JSON.stringify({
+                            buy: data.proposal.id,
+                            price: stake
+                        }));
+                        break;
+                        
                     case "buy":
                         ws.send(JSON.stringify({
                             proposal_open_contract: 1,
@@ -422,8 +429,8 @@
                         break;
 
                     case "proposal_open_contract":
+                        console.log(data.proposal_open_contract);
                         if (data.proposal_open_contract.is_sold) {
-                            console.log("Test");
                             let profit = parseFloat(data.proposal_open_contract.profit);
                             if (profit > 0) { stake = baseStake; lossStreak = 0; }
                             else { lossStreak++; stake = (stake * martingale).toFixed(2); }
