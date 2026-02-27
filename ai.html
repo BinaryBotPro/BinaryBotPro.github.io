@@ -281,17 +281,14 @@
             log("BUY " + type + " | Stake " + stake, "text-yellow-400");
 
             ws.send(JSON.stringify({
-                buy: 1,
-                price: stake,
-                parameters: {
-                    amount: stake,
-                    basis: "stake",
-                    contract_type: type,
-                    currency: "USD",
-                    duration: 10,
-                    duration_unit: "t",
-                    symbol: SYMBOL
-                }
+                proposal: 1,
+                amount: stake,
+                basis: "stake",
+                contract_type: type,
+                currency: "USD",
+                duration: 1,
+                duration_unit: "m",
+                symbol: SYMBOL
             }));
         }
 
@@ -433,7 +430,7 @@
                         if (data.proposal_open_contract.is_sold) {
                             let profit = parseFloat(data.proposal_open_contract.profit);
                             if (profit > 0) { stake = baseStake; lossStreak = 0; }
-                            else { lossStreak++; stake = (stake * martingale).toFixed(2); }
+                            else { lossStreak++; stake = parseFloat((stake * martingale).toFixed(2)); }
                             updateStats(profit);
                             document.getElementById("stakeView").innerText = stake;
                             document.getElementById("ls").innerText = lossStreak;
