@@ -264,12 +264,12 @@
             
             document.getElementById("prob").innerText = `[CALL] ${isOversold?1:0}${downTrend?1:0} | [PUT] ${isOverbought?1:0}${upTrend?1:0}`;
             if (isOversold && downTrend) {
-                buy("CALL");
+                buy("PUT");
                 return;
             }
            
             if (isOverbought && upTrend) {
-                buy("PUT");
+                buy("CALL");
                 return;
             }
         }
