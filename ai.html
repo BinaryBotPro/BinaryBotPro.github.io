@@ -265,13 +265,13 @@
             if (vol < 0.0001) return; 
             const isOversold = rsi < 30 && roc < -0.02;
             const downTrendWeakening = emaFast < emaSlow && slope > -0.02; // เทรนด์ขาลงแต่ความชันเริ่มลดลง
-            if (isOversold || (downTrendWeakening && rsi < 35)) {
+            if (isOversold && downTrendWeakening) {
                 buy("CALL");
                 return;
             }
             const isOverbought = rsi > 70 && roc > 0.02;
             const upTrendWeakening = emaFast > emaSlow && slope < 0.02; // เทรนด์ขาขึ้นแต่ความชันเริ่มลดลง
-            if (isOverbought || (upTrendWeakening && rsi > 65)) {
+            if (isOverbought && upTrendWeakening) {
                 buy("PUT");
                 return;
             }
