@@ -9,6 +9,31 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0"></script>
 
     <style>
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 255, 150, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff99;
+            border-radius: 10px;
+            box-shadow:
+                0 0 5px #00ff99,
+                0 0 10px rgba(0,255,150,0.6),
+                inset 0 0 5px rgba(0,0,0,0.6);
+            transition: 0.3s;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00ffaa;
+            box-shadow:
+                0 0 8px #00ffaa,
+                0 0 14px rgba(0,255,150,0.9);
+        }
         body {
             background: radial-gradient(circle at top, #0f172a, #000);
             font-family: monospace;
@@ -17,8 +42,8 @@
         .card {
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 255, 150, 0.15);
-            box-shadow: 0 0 20px rgba(0, 255, 150, 0.05);
+            border: 1px solid rgba(0, 255, 150, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 150, 0.1);
         }
 
         .logbox {
@@ -31,9 +56,9 @@
     </style>
 </head>
 
-<body class="text-green-400 p-4 sm:p-6">
+<body class="text-green-400 p-4 sm:p-6 flex flex-col sm:h-screen h-full">
 
-    <h1 class="text-2xl sm:text-3xl font-bold mb-6 text-green-300 glow text-center sm:text-left">
+    <h1 class="text-2xl sm:text-3xl font-bold mb-4 text-green-300 text-center sm:text-center">
         BINARY BOT PRO AI
     </h1>
 
@@ -47,11 +72,34 @@
         <!-- CONTROL -->
         <div class="card p-4 sm:p-5 rounded-xl">
             <h2 class="text-green-300 mb-2 text-sm sm:text-base">CONTROL</h2>
-            <input id="token" placeholder="API Token" class="w-full text-black p-2 mb-3 rounded text-sm">
+            <input id="token" type="password" placeholder="API Token"
+                class="w-full text-black p-2 mb-3 rounded text-sm"
+                value="XFOzhqtHz0gI04U">
+            
+            <div class="flex gap-3">
+                <input id="stake" type="number" placeholder="ST"
+                    class="w-full text-black p-2 mb-3 rounded text-sm" value="0.35">
+    
+                <input id="martingale" type="number" placeholder="MG"
+                    class="w-full text-black p-2 mb-3 rounded text-sm" value="2.1">
+
+                <input id="targetProfit" type="number" placeholder="TP"
+                    class="w-full text-black p-2 mb-3 rounded text-sm">
+    
+                <input id="stopLoss" type="number" placeholder="SL"
+                    class="w-full text-black p-2 mb-3 rounded text-sm">
+            </div>
 
             <button onclick="startBot()"
-                class="bg-green-600 hover:bg-green-500 active:scale-95 transition w-full py-2 rounded glow text-sm sm:text-base">
+                id="startBtn"
+                class="text-white bg-green-600 hover:bg-green-500 active:scale-95 transition w-full py-2 rounded glow text-sm sm:text-base">
                 START BOT
+            </button>
+
+            <button onclick="stopBot()"
+                id="stopBtn"
+                class="text-white bg-red-600 hover:bg-red-500 active:scale-95 transition w-full py-2 rounded glow text-sm sm:text-base hidden">
+                STOP BOT
             </button>
 
             <div class="mt-2 text-xs sm:text-sm">
@@ -62,33 +110,35 @@
         <!-- ACCOUNT -->
         <div class="card p-4 sm:p-5 rounded-xl">
             <h2 class="text-green-300 mb-2 text-sm sm:text-base">ACCOUNT</h2>
-            Balance: <span id="balance">0</span><br>
-            PnL: <span id="pnl">0</span><br>
-            Drawdown: <span id="dd">0</span>
+            Balance: <span id="balance">--</span><br>
+            PnL: <span id="pnl">--</span><br>
+            Drawdown: <span id="dd">--</span>
         </div>
 
         <!-- MODEL -->
         <div class="card p-4 sm:p-5 rounded-xl">
             <h2 class="text-green-300 mb-2 text-sm sm:text-base">MODEL</h2>
-            Prob: <span id="prob">0</span><br>
-            Stake: <span id="stakeView">1</span><br>
-            Loss Streak: <span id="ls">0</span>
+            Price: <span id="lastPrice">--</span><br>
+            Prob: <span id="prob">--</span><br>
+            Stake: <span id="stakeView">--</span><br>
+            Loss Streak: <span id="ls">--</span><br>
+            Status: <span id="modelStatus">--</span>
         </div>
 
         <!-- PERFORMANCE -->
         <div class="card p-4 sm:p-5 rounded-xl">
             <h2 class="text-green-300 mb-2 text-sm sm:text-base">PERFORMANCE</h2>
-            Trades: <span id="trades">0</span><br>
-            Wins: <span id="wins">0</span><br>
-            Winrate: <span id="wr">0%</span>
+            Trades: <span id="trades">--</span><br>
+            Wins: <span id="wins">--</span><br>
+            Losses: <span id="losses">--</span><br>
+            Winrate: <span id="wr">--</span>
         </div>
-
-
-
     </div>
 
     <!-- LOG FULL WIDTH -->
-    <div class="card logbox p-4 rounded-xl h-64 sm:h-80 overflow-y-auto text-xs sm:text-sm" id="log"></div>
+    <div class="card logbox p-4 rounded-xl h-64 sm:h-80 overflow-y-auto text-xs sm:text-sm" id="log">
+        <h2 class="text-green-300 mb-2 text-sm sm:text-base">LOG</h2>
+    </div>
 
     <script>
         const APP_ID = 1089;
@@ -97,133 +147,133 @@
         let ws, model, prices = [];
         let balance = 0, pnl = 0, peak = 0, maxDD = 0;
         let trades = 0, wins = 0;
-        let stake = 1, baseStake = 1, lossStreak = 0;
+        let stake = document.getElementById("stake").value*1, baseStake = stake, lossStreak = 0;
         let isTrading = false, isReady = false;
         let tickCounter = 0;
-        //let retrainInterval = 300;
+        let targetProfit = null;
+        let stopLoss = null;
+        let martingale = null;
+        let lastTickPrice = null;
+        let nextTradeAllowedTime = 0;
+        const tradeCountdown = 5000;
+
+
+        const TIMESTEPS = 20;
+        const FEATURES = 4;
+
         /* ========= LOG ========= */
 
         function log(msg, color = "text-green-400") {
             const el = document.getElementById("log");
-            el.innerHTML += `<div class="${color}">
-    ${new Date().toLocaleTimeString()} ▸ ${msg}
-    </div>`;
+            el.innerHTML += `<div class="${color}">${new Date().toLocaleTimeString()} ▸ ${msg}</div>`;
             el.scrollTop = el.scrollHeight;
         }
 
         /* ========= MODEL ========= */ 
-        async function createModel() { 
-            model = tf.sequential(); 
-            model.add(tf.layers.dense({ units: 64, inputShape: [5], activation: 'relu' })); 
-            model.add(tf.layers.dense({ units: 32, activation: 'relu' })); 
-            model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' })); 
-            model.compile({ optimizer: tf.train.adam(0.0005), loss: 'binaryCrossentropy' }); 
-        } 
+        function getSlope(period = 20) {
+
+            if (prices.length < period) return 0;
+
+            let xSum = 0, ySum = 0, xySum = 0, xxSum = 0;
+
+            for (let i = 0; i < period; i++) {
+                const x = i;
+                const y = prices[prices.length - period + i];
+
+                xSum += x;
+                ySum += y;
+                xySum += x * y;
+                xxSum += x * x;
+            }
+
+            const slope =
+                (period * xySum - xSum * ySum) /
+                (period * xxSum - xSum * xSum);
+
+            return slope;
+        }
         
         /* ========= FEATURE ========= */ 
-        function getFeature() { 
-            if (prices.length < 50) return null; 
-            const slice = prices.slice(-50); 
-            let returns = []; 
-            for (let i = 1; i < slice.length; i++) 
-                returns.push((slice[i] - slice[i - 1]) / slice[i - 1]); 
-            const mean = returns.reduce((a, b) => a + b, 0) / returns.length; 
-            const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length; 
-            const vol = Math.sqrt(variance); const momentum = slice[slice.length - 1] - slice[0]; 
-            const shortMA = slice.slice(-5).reduce((a, b) => a + b, 0) / 5; 
-            const longMA = slice.reduce((a, b) => a + b, 0) / slice.length; 
-            const trend = shortMA - longMA; 
-            const lastReturn = returns[returns.length - 1]; 
-            return { feat: [mean, vol, momentum, trend, lastReturn], vol }; 
-        } 
+
             
-        /* ========= TRAIN ========= */ 
-        async function trainModel() { 
-            if (prices.length < 100) return; 
-            let xs = [], ys = []; 
-            for (let i = 50; i < prices.length - 1; i++) { 
-                const slice = prices.slice(i - 50, i); 
-                let returns = []; 
-                for (let j = 1; j < slice.length; j++) 
-                    returns.push((slice[j] - slice[j - 1]) / slice[j - 1]); 
-                const mean = returns.reduce((a, b) => a + b, 0) / returns.length; 
-                const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length; 
-                const vol = Math.sqrt(variance); 
-                const momentum = slice[slice.length - 1] - slice[0]; 
-                const shortMA = slice.slice(-5).reduce((a, b) => a + b, 0) / 5; 
-                const longMA = slice.reduce((a, b) => a + b, 0) / slice.length; 
-                const trend = shortMA - longMA; 
-                const lastReturn = returns[returns.length - 1]; 
-                xs.push([mean, vol, momentum, trend, lastReturn]); 
-                ys.push([prices[i] > prices[i - 1] ? 1 : 0]); 
-            } 
-            const X = tf.tensor2d(xs); 
-            const Y = tf.tensor2d(ys); 
-            await model.fit(X, Y, { epochs: 5, batchSize: 32, verbose: 0 }); 
-            X.dispose(); Y.dispose(); 
+        function ema(period) {
+            const k = 2 / (period + 1);
+            let ema = prices[prices.length - period];
+
+            for (let i = prices.length - period + 1; i < prices.length; i++) {
+                ema = prices[i] * k + ema * (1 - k);
+            }
+
+            return ema;
         }
 
+        function getVolatility() {
+
+            if (prices.length < 10) return 0;
+
+            const slice = prices.slice(-10);
+            const mean = slice.reduce((a,b)=>a+b,0)/slice.length;
+            const variance = slice.reduce((a,b)=>a+(b-mean)**2,0)/slice.length;
+
+            return Math.sqrt(variance);
+        }
+
+        function getMomentum() {
+
+            if (prices.length < 4) return 0;
+
+            return (
+                (prices.at(-1) - prices.at(-2)) +
+                (prices.at(-2) - prices.at(-3)) +
+                (prices.at(-3) - prices.at(-4))
+            );
+        }
+
+
         /* ========= PREDICT ========= */
-
         function predict() {
+
             if (!isReady || isTrading) return;
+            if (Date.now() < nextTradeAllowedTime) return;
+            if (prices.length < 30) return;
 
-            const obj = getFeature();
-            if (!obj) return;
+            const emaFast = ema(5);
+            const emaSlow = ema(20);
 
-            const { feat, vol } = obj;
+            const slope = getSlope(20);
+            const momentum = getMomentum();
+            const vol = getVolatility();
 
-            const prob = tf.tidy(() => {
-                const xs = tf.tensor2d([feat]);
-                return model.predict(xs).dataSync()[0];
-            });
+            const trendStrength = Math.abs(emaFast - emaSlow);
 
-            document.getElementById("prob").innerText = prob.toFixed(3);
+            // 🔥 กรองตลาดนิ่ง
+            if (vol < 0.00007) return;
 
-            // =============================
-            // 🔥 1. Volatility Adaptive Filter
-            // =============================
-            if (vol < 0.00004) return;
+            // 🔥 ต้องเป็น trend จริง
+            if (trendStrength < 0.00005) return;
 
-            // =============================
-            // 🔥 2. Multi Moving Average
-            // =============================
-            const p = prices;
-            const maFast = p.slice(-3).reduce((a,b)=>a+b,0)/3;
-            const maMid  = p.slice(-8).reduce((a,b)=>a+b,0)/8;
-            const maSlow = p.slice(-15).reduce((a,b)=>a+b,0)/15;
+            // 🔥 Slope ต้องไปทางเดียวกับ EMA
+            const upTrend = emaFast > emaSlow && slope > 0;
+            const downTrend = emaFast < emaSlow && slope < 0;
 
-            const strongUp   = maFast > maMid && maMid > maSlow;
-            const strongDown = maFast < maMid && maMid < maSlow;
-
-            // =============================
-            // 🔥 3. Momentum Score
-            // =============================
-            const momentum =
-                (p[p.length-1] - p[p.length-2]) +
-                (p[p.length-2] - p[p.length-3]) +
-                (p[p.length-3] - p[p.length-4]);
-
-            // =============================
-            // 🔥 6. Micro Entry Boost (เข้าเพิ่ม)
-            // =============================
-            if (prob > 0.55 && momentum > 0 && strongUp) {
+            if (upTrend && momentum > 0) {
                 buy("CALL");
                 return;
             }
 
-            if (prob < 0.45 && momentum < 0 && strongDown) {
+            if (downTrend && momentum < 0) {
                 buy("PUT");
                 return;
             }
         }
 
-        /* ========= BUY ========= */
 
+        /* ========= BUY ========= */
         function buy(type) {
             if (!ws || ws.readyState !== 1) return;
             isTrading = true;
             document.getElementById("status").innerText = "Trading";
+            document.getElementById("modelStatus").innerText = "Trading...";
             log("BUY " + type + " | Stake " + stake, "text-yellow-400");
 
             ws.send(JSON.stringify({
@@ -234,7 +284,7 @@
                     basis: "stake",
                     contract_type: type,
                     currency: "USD",
-                    duration: 3,
+                    duration: 5,
                     duration_unit: "t",
                     symbol: SYMBOL
                 }
@@ -242,7 +292,6 @@
         }
 
         /* ========= STATS ========= */
-
         function updateStats(profit) {
             trades++;
             if (profit > 0) wins++;
@@ -256,6 +305,7 @@
 
             document.getElementById("trades").innerText = trades;
             document.getElementById("wins").innerText = wins;
+            document.getElementById("losses").innerText = trades-wins;
 
             let wr = ((wins / trades) * 100) || 0;
             document.getElementById("wr").innerText = wr.toFixed(1) + "%";
@@ -265,14 +315,37 @@
 
             log("Result " + profit.toFixed(2),
                 profit > 0 ? "text-green-400" : "text-red-500");
+
+            // ===============================
+            // CHECK TARGET PROFIT
+            // ===============================
+            if (targetProfit !== 0 && pnl >= targetProfit) {
+                stopBot("Target Profit " + pnl.toFixed(2) + "$", "text-green-500");
+            }
+
+            // ===============================
+            // CHECK STOP LOSS
+            // ===============================
+            if (stopLoss !== 0 && pnl <= -stopLoss) {
+                stopBot("Stop Loss " + pnl.toFixed(2) + "$", "text-red-500");
+            }
+            
         }
+
 
         /* ========= START ========= */
 
         async function startBot() {
+            toggleButtons(true);
             document.getElementById("status").innerText = "Loading";
-            await createModel();
             const token = document.getElementById("token").value;
+
+            targetProfit = document.getElementById("targetProfit").value*1;
+            stopLoss = document.getElementById("stopLoss").value*1;
+
+            stake = document.getElementById("stake").value*1;
+            baseStake = stake;
+            martingale = document.getElementById("martingale").value*1;
 
             ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=" + APP_ID);
             ws.onopen = () => ws.send(JSON.stringify({ authorize: token }));
@@ -290,12 +363,9 @@
                 switch (data.msg_type) {
 
                     case "authorize":
-                        log("Authorized", "text-green-400");
+                        log("Authorized", "text-blue-400");
                         // ✅ SUBSCRIBE BALANCE
-                        ws.send(JSON.stringify({
-                            balance: 1,
-                            subscribe: 1
-                        }));
+                        ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
                         ws.send(JSON.stringify({ ticks: SYMBOL, subscribe: 1 }));
                         ws.send(JSON.stringify({
                             ticks_history: SYMBOL,
@@ -303,15 +373,15 @@
                             end: "latest",
                             style: "ticks"
                         }));
+                        document.getElementById("stakeView").innerText = stake.toFixed(2);
+                        // initChart();
                         break;
 
                     case "history":
                         prices = data.history.prices.map(p => parseFloat(p));
-                        log("Training model...");
-                        await trainModel();
+                        document.getElementById("modelStatus").innerText = "Training model...";
                         isReady = true;
                         document.getElementById("status").innerText = "Live";
-                        log("Model Ready", "text-green-400");
                         break;
                     case "balance":
                         if (data.balance && data.balance.balance !== undefined) {
@@ -322,6 +392,26 @@
                     case "tick":
                         prices.push(data.tick.quote);
                         if (prices.length > 1200) prices.shift();
+
+                        const price = parseFloat(data.tick.quote);
+                        const priceEl = document.getElementById("lastPrice");
+
+                        priceEl.innerText = price.toFixed(2);
+
+                        // ถ้ามีราคาก่อนหน้าแล้ว
+                        if (lastTickPrice !== null) {
+
+                            if (price > lastTickPrice) {
+                                priceEl.classList.remove("text-red-500");
+                                priceEl.classList.add("text-blue-400");
+                            } 
+                            else if (price < lastTickPrice) {
+                                priceEl.classList.remove("text-blue-400");
+                                priceEl.classList.add("text-red-500");
+                            }
+                        }
+
+                        lastTickPrice = price;
 
                         //tickCounter++;
 
@@ -347,17 +437,57 @@
                             let profit = parseFloat(data.proposal_open_contract.profit);
 
                             if (profit > 0) { stake = baseStake; lossStreak = 0; }
-                            else { lossStreak++; stake = Math.min(stake * 2.1).toFixed(2); }
+                            else { lossStreak++; stake = Math.min(stake * martingale).toFixed(2); }
 
                             updateStats(profit);
                             document.getElementById("stakeView").innerText = stake;
                             document.getElementById("ls").innerText = lossStreak;
+                            nextTradeAllowedTime = Date.now() + tradeCountdown;
                             isTrading = false;
+                            document.getElementById("modelStatus").innerText = "Training Model...";
                         }
                         break;
                 }
             };
         }
+
+        function stopBot(reason = "Stopped", style = "text-red-400") {
+            isTrading = false;
+            isReady = false;
+
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+            toggleButtons(false);
+            document.getElementById("status").innerText = "Stopped";
+            log("BOT STOPPED | " + reason, style);
+        }
+
+        function toggleButtons(isRunning) {
+            const startBtn = document.getElementById("startBtn");
+            const stopBtn = document.getElementById("stopBtn");
+            const inputs = ["token", "targetProfit", "stopLoss", "stake", "martingale"];
+
+            if (isRunning) {
+                startBtn.classList.add("hidden");
+                stopBtn.classList.remove("hidden");
+                inputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    el.disabled = true
+                });
+            } else {
+                startBtn.classList.remove("hidden");
+                stopBtn.classList.add("hidden");
+                inputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    el.disabled = false;
+                });
+            }
+        }
+
+
+
     </script>
 
 </body>
