@@ -253,8 +253,8 @@
             if (trendStrength < 0.00005) return;
 
             // 🔥 Slope ต้องไปทางเดียวกับ EMA
-            const upTrend = emaFast > emaSlow && slope > 0;
-            const downTrend = emaFast < emaSlow && slope < 0;
+            const upTrend = emaFast > emaSlow && slope > 1;
+            const downTrend = emaFast < emaSlow && slope < -1;
 
             if (upTrend && momentum > 0) {
                 buy("CALL");
@@ -284,7 +284,7 @@
                     basis: "stake",
                     contract_type: type,
                     currency: "USD",
-                    duration: 5,
+                    duration: 10,
                     duration_unit: "t",
                     symbol: SYMBOL
                 }
