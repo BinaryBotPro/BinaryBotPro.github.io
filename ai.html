@@ -232,8 +232,6 @@
 
         /* ========= PREDICT ========= */
         function predict() {
-
-            if (!isReady || isTrading) return;
             if (Date.now() < nextTradeAllowedTime) return;
             if (prices.length < 30) return;
 
@@ -246,7 +244,7 @@
 
             const trendStrength = Math.abs(emaFast - emaSlow);
             document.getElementById("prob").innerText = slope.toFixed(2);
-
+            if (!isReady || isTrading) return;
             // 🔥 กรองตลาดนิ่ง
             if (vol < 0.00007) return;
 
@@ -258,12 +256,12 @@
             const downTrend = emaFast < emaSlow && slope < -0.05;
 
             if (upTrend && momentum > 0) {
-                buy("CALL");
+                buy("PUT");
                 return;
             }
 
             if (downTrend && momentum < 0) {
-                buy("PUT");
+                buy("CALL");
                 return;
             }
         }
