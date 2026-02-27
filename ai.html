@@ -445,10 +445,8 @@
                     case "proposal_open_contract":
                         if (data.proposal_open_contract.is_sold) {
                             let profit = parseFloat(data.proposal_open_contract.profit);
-
                             if (profit > 0) { stake = baseStake; lossStreak = 0; }
-                            else { lossStreak++; stake = Math.min(stake * martingale).toFixed(2); }
-
+                            else { lossStreak++; stake = (stake * martingale).toFixed(2); }
                             updateStats(profit);
                             document.getElementById("stakeView").innerText = stake;
                             document.getElementById("ls").innerText = lossStreak;
