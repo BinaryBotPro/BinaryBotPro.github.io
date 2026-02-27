@@ -245,7 +245,7 @@
             const vol = getVolatility();
 
             const trendStrength = Math.abs(emaFast - emaSlow);
-            documeent.getElementById("prob").innerText = slope;
+            document.getElementById("prob").innerText = slope.toFixed(2);
 
             // 🔥 กรองตลาดนิ่ง
             if (vol < 0.00007) return;
