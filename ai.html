@@ -396,9 +396,9 @@
             document.getElementById("prob").innerText = prob.toFixed(3);
 
             // Strong confidence only
-            if (prob > 0.53) {
+            if (prob > 0.52) {
                 buy("CALL");
-            } else if (prob < 0.47) {
+            } else if (prob < 0.48) {
                 buy("PUT");
             }
         }
@@ -531,12 +531,12 @@
                         prices.push(data.tick.quote);
                         if (prices.length > 1200) prices.shift();
 
-                        tickCounter++;
+                        // tickCounter++;
 
-                        if (tickCounter >= 250) {
-                            tickCounter = 0;
-                            trainModel();
-                        }
+                        // if (tickCounter >= 250) {
+                        //     tickCounter = 0;
+                        //     trainModel();
+                        // }
 
                         const price = parseFloat(data.tick.quote);
                         const priceEl = document.getElementById("lastPrice");
