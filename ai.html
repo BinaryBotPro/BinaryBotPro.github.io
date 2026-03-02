@@ -397,9 +397,9 @@
 
             // Strong confidence only
             if (prob > 0.52) {
-                buy("CALL");
-            } else if (prob < 0.48) {
                 buy("PUT");
+            } else if (prob < 0.48) {
+                buy("CALL");
             }
         }
 
