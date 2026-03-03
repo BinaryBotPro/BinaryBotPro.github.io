@@ -14,25 +14,18 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: rgba(0, 255, 150, 0.05);
+            background: rgba(0, 255, 150, 0);
             border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb {
             background: #00ff99;
             border-radius: 10px;
-            box-shadow:
-                0 0 5px #00ff99,
-                0 0 10px rgba(0,255,150,0.6),
-                inset 0 0 5px rgba(0,0,0,0.6);
             transition: 0.3s;
         }
 
         ::-webkit-scrollbar-thumb:hover {
             background: #00ffaa;
-            box-shadow:
-                0 0 8px #00ffaa,
-                0 0 14px rgba(0,255,150,0.9);
         }
         body {
             background: radial-gradient(circle at top, #0f172a, #000);
@@ -144,7 +137,7 @@
         const APP_ID = 1089;
         const SYMBOL = "R_100";
 
-        let ws, model, prices = [];
+        let ws, prices = [];
         let balance = 0, pnl = 0, peak = 0, maxDD = 0;
         let trades = 0, wins = 0;
         let stake = document.getElementById("stake").value*1, baseStake = stake, lossStreak = 0;
@@ -154,10 +147,8 @@
         let stopLoss = null;
         let martingale = null;
         let activeContract = null;
-        let isModelTraining = false;
-        const SEQ_LEN = 20;
-        const FEATURE_SIZE = 3;
-
+        let contractType = null;
+        
 
         /* ========= LOG ========= */
         function log(msg, color = "text-green-400") {
@@ -281,128 +272,64 @@
         }
 
 
-        function buildSequence(index = null) {
-
-            if (prices.length < SEQ_LEN + 2) return null;
-
-            const end = index ? index : prices.length - 1;
-            const start = end - SEQ_LEN;
-
-            if (start <= 0) return null;
-
-            let seq = [];
-
-            for (let i = start; i < end; i++) {
-
-                const change = prices[i] - prices[i - 1];
-                const momentum = prices[i] - prices[i - 3] || 0;
-                const volatility = getVolatility();
-
-                seq.push([change, momentum, volatility]);
+        function getTrendStrength(ticks, count) {
+            if (ticks.length < count) {
+                return { direction: 'FLAT', strength: 0 };
             }
+            const relevantTicks = ticks.slice(-count).map(t => parseFloat(t));
+            
+            const startPrice = relevantTicks[0];
+            const endPrice = relevantTicks[relevantTicks.length - 1];
+            const priceChange = endPrice - startPrice;
 
-            return seq;
+            const mean = relevantTicks.reduce((a, b) => a + b) / relevantTicks.length;
+            const stdDev = Math.sqrt(relevantTicks.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / relevantTicks.length);
+
+            const strength = stdDev > 0 ? Math.abs(priceChange) / stdDev : 0;
+
+            let direction = 'FLAT';
+            if (priceChange > 0) {
+                direction = 'UP';
+            } else if (priceChange < 0) {
+                direction = 'DOWN';
+            }
+            return { direction, strength };
         }
 
-        async function createModel() {
 
-            model = tf.sequential();
 
-            model.add(tf.layers.lstm({
-                units: 32,
-                returnSequences: false,
-                inputShape: [SEQ_LEN, FEATURE_SIZE]
-            }));
-
-            model.add(tf.layers.dense({
-                units: 16,
-                activation: "relu"
-            }));
-
-            model.add(tf.layers.dense({
-                units: 1,
-                activation: "sigmoid"
-            }));
-
-            model.compile({
-                optimizer: tf.train.adam(0.001),
-                loss: "binaryCrossentropy",
-                metrics: ["accuracy"]
-            });
-
-            log("LSTM Model Ready", "text-blue-400");
-        }
-
-        async function trainModel() {
-
-            if (!model) return;
-            if (prices.length < 300) return;
-            if (isModelTraining) return;
-
-            isModelTraining = true;
-
-            let xs = [];
-            let ys = [];
-
-            for (let i = SEQ_LEN + 10; i < prices.length - 1; i++) {
-
-                const seq = buildSequence(i);
-                if (!seq) continue;
-
-                xs.push(seq);
-
-                const label = prices[i + 1] > prices[i] ? 1 : 0;
-                ys.push([label]);
-            }
-
-            if (xs.length < 50) {
-                isModelTraining = false;
-                return;
-            }
-
-            const tensorX = tf.tensor3d(xs);
-            const tensorY = tf.tensor2d(ys);
-
-            await model.fit(tensorX, tensorY, {
-                epochs: 3,
-                batchSize: 32,
-                verbose: 0
-            });
-
-            tensorX.dispose();
-            tensorY.dispose();
-
-            isModelTraining = false;
-
-            log("AI Retrained", "text-blue-400");
-        }
 
         /* ========= PREDICT ========= */
         async function predict() {
 
-            if (!model) return;
             if (!isReady || isTrading) return;
             if (activeContract) return;
-            const seq = buildSequence();
-            if (!seq) return;
 
-            const input = tf.tensor3d([seq]);
-            const output = model.predict(input);
-            const prob = (await output.data())[0];
+            const trend = getTrendStrength(prices, 12);
 
-            input.dispose();
-            output.dispose();
+            document.getElementById("prob").innerText = trend.direction + " [" + (trend.strength).toFixed(2) + "]";
 
-            document.getElementById("prob").innerText = prob.toFixed(3);
-
-            // Strong confidence only
-            if (prob > 0.52) {
+            if (trend.direction === 'DOWN') {
                 buy("PUT");
-            } else if (prob < 0.48) {
+            } else if (trend.direction === 'UP') {
                 buy("CALL");
             }
+
         }
 
+        function analyzeLastDigits(ticks, count) {
+            const frequencies = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0 };
+            if (ticks.length === 0) return frequencies;
+
+            const relevantTicks = ticks.slice(-count);
+            relevantTicks.forEach(tick => {
+                const lastDigit = parseInt(String(tick.quote).slice(-1));
+                if (!isNaN(lastDigit)) {
+                    frequencies[lastDigit]++;
+                }
+            });
+            return frequencies;
+        }
 
         /* ========= BUY ========= */
         function buy(type) {
@@ -419,7 +346,7 @@
                 basis: "stake",
                 contract_type: type,
                 currency: "USD",
-                duration: 5,
+                duration: 1,
                 duration_unit: "t",
                 symbol: SYMBOL
             }));
@@ -504,7 +431,7 @@
                         ws.send(JSON.stringify({ ticks: SYMBOL, subscribe: 1 }));
                         ws.send(JSON.stringify({
                             ticks_history: SYMBOL,
-                            count: 1000,
+                            count: 200,
                             end: "latest",
                             style: "ticks"
                         }));
@@ -514,12 +441,8 @@
 
                     case "history":
                         prices = data.history.prices.map(p => parseFloat(p));
-
-                        await createModel();
-                        await trainModel();
-
                         isReady = true;
-                        document.getElementById("status").innerText = "AI Live";
+                        document.getElementById("status").innerText = "Live";
                         break;
                     case "balance":
                         if (data.balance && data.balance.balance !== undefined) {
@@ -529,28 +452,9 @@
                         break;
                     case "tick":
                         prices.push(data.tick.quote);
-                        if (prices.length > 1200) prices.shift();
-
-                        // tickCounter++;
-
-                        // if (tickCounter >= 250) {
-                        //     tickCounter = 0;
-                        //     trainModel();
-                        // }
-
+                        if (prices.length > 200) prices.shift();
                         const price = parseFloat(data.tick.quote);
-                        const priceEl = document.getElementById("lastPrice");
-
-                        priceEl.innerText = price.toFixed(2);
-                        
-                        //tickCounter++;
-
-                        //if (tickCounter >= retrainInterval) {
-                        //    tickCounter = 0;
-                        //    log("Retraining Model...", "text-blue-400");
-                        //    await trainModel();
-                        //}
-
+                        document.getElementById("lastPrice").innerText = price.toFixed(2);
                         predict();
                         break;
                         
