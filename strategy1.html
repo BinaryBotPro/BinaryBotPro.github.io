@@ -166,14 +166,24 @@
             
             const startPrice = relevantTicks[0];
             const endPrice = relevantTicks[relevantTicks.length - 1];
+            const endPrice2 = relevantTicks[relevantTicks.length - 2];
+            const lastIndex = relevantTicks.length - 1;
+            const ticksExceptLast = relevantTicks.slice(0, lastIndex);
+
+            const min = Math.min(...relevantTicks);
+            const max = Math.max(...relevantTicks);
+            const minExceptLast = Math.min(...ticksExceptLast);
+            const maxExceptLast = Math.max(...ticksExceptLast);
+
+            console.log(relevantTicks, ticksExceptLast);
 
             let direction = 'FLAT';
-            if (startPrice == Math.min(...relevantTicks) && endPrice == Math.max(...relevantTicks)) {
+
+            if (startPrice === min && endPrice2 === maxExceptLast && endPrice < endPrice2) {
                 direction = 'UP';
-            } else if (startPrice == Math.max(...relevantTicks) && endPrice == Math.min(...relevantTicks)) {
+            } else if (startPrice === max && endPrice2 === minExceptLast && endPrice > endPrice2) {
                 direction = 'DOWN';
             }
-
             return { direction };
         }
 
