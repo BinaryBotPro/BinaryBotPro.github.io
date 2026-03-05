@@ -148,7 +148,9 @@
         let martingale = null;
         let activeContract = null;
         let contractType = null;
-        
+        let openContracts = 0;
+        let maxContracts = 2;
+        let sumProfit = 0;
 
         /* ========= LOG ========= */
         function log(msg, color = "text-green-400") {
@@ -167,6 +169,7 @@
             const startPrice = relevantTicks[0];
             const endPrice = relevantTicks[relevantTicks.length - 1];
             const endPrice2 = relevantTicks[relevantTicks.length - 2];
+            const endPrice3 = relevantTicks[relevantTicks.length - 3];
             const lastIndex = relevantTicks.length - 1;
             const ticksExceptLast = relevantTicks.slice(0, lastIndex);
 
@@ -175,13 +178,13 @@
             const minExceptLast = Math.min(...ticksExceptLast);
             const maxExceptLast = Math.max(...ticksExceptLast);
 
-            console.log(relevantTicks, ticksExceptLast);
+            console.log(relevantTicks);
 
             let direction = 'FLAT';
 
-            if (startPrice === min && endPrice2 === maxExceptLast && endPrice < endPrice2) {
+            if (startPrice === min && endPrice3 === maxExceptLast && endPrice < endPrice2 && endPrice2 < endPrice3) {
                 direction = 'UP';
-            } else if (startPrice === max && endPrice2 === minExceptLast && endPrice > endPrice2) {
+            } else if (startPrice === max && endPrice3 === minExceptLast && endPrice > endPrice2 && endPrice2 > endPrice3) {
                 direction = 'DOWN';
             }
             return { direction };
@@ -191,55 +194,88 @@
 
         /* ========= PREDICT ========= */
         async function predict() {
-
-            if (!isReady || isTrading) return;
-            if (activeContract) return;
+            if (!isReady) return;
+            if (openContracts > 0) return;
+            // if (!isReady || isTrading) return;
+            // if (activeContract) return;
 
             const trend = getTrend(prices, 20);
+            // const digit = analyzeLastDigits(prices, 100);
+            // let coldestDigit = -1;
+            // let minFreq = Infinity;
+            // for (let i = 0; i <= 9; i++) {
+            //     if (digit[i] < minFreq) {
+            //         minFreq = digit[i];
+            //         coldestDigit = i;
+            //     }
+            // }
 
             document.getElementById("prob").innerText = trend.direction;
-
             if (trend.direction === 'DOWN') {
-                buy("CALL", 1, "t");
+                buy("PUT", 5, "t", "");
             } else if (trend.direction === 'UP') {
-                buy("PUT", 1, "t");
-            }
+                buy("CALL", 5, "t", "");
 
+            }
+            // const lastDigit = parseInt(String(prices[prices.length-1].toFixed(2)).slice(-1));
+
+            // if (lastDigit !== coldestDigit) {
+            //     buy("DIGITDIFF", 1, "t", lastDigit);
+            // }
         }
 
         function analyzeLastDigits(ticks, count) {
             const frequencies = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0 };
             if (ticks.length === 0) return frequencies;
 
-            const relevantTicks = ticks.slice(-count);
+            const relevantTicks = ticks.slice(-count).map(t => parseFloat(t).toFixed(2));
+            
             relevantTicks.forEach(tick => {
-                const lastDigit = parseInt(String(tick.quote).slice(-1));
+                const lastDigit = parseInt(String(tick).slice(-1));
                 if (!isNaN(lastDigit)) {
                     frequencies[lastDigit]++;
                 }
+                
             });
             return frequencies;
         }
 
         /* ========= BUY ========= */
-        function buy(type, duration, duration_unit) {
+        function buy(type, duration, duration_unit, barrier) {
             if (!ws || ws.readyState !== 1) return;
-            if (isTrading) return;
-            isTrading = true;
+            if (openContracts >= maxContracts) return;
+
+            openContracts++;
+
             document.getElementById("status").innerText = "Trading";
             document.getElementById("modelStatus").innerText = "Trading...";
             log("BUY " + type + " | Stake " + stake, "text-yellow-400");
 
-            ws.send(JSON.stringify({
-                proposal: 1,
-                amount: stake,
-                basis: "stake",
-                contract_type: type,
-                currency: "USD",
-                duration: duration,
-                duration_unit: duration_unit,
-                symbol: SYMBOL
-            }));
+            if (type == "CALL" || type == "PUT") {
+                ws.send(JSON.stringify({
+                    proposal: 1,
+                    amount: stake,
+                    basis: "stake",
+                    contract_type: type,
+                    currency: "USD",
+                    duration: duration,
+                    duration_unit: duration_unit,
+                    symbol: SYMBOL
+                }));
+            }
+            // if (type == "DIGITDIFF") {
+            //     ws.send(JSON.stringify({
+            //         proposal: 1,
+            //         amount: stake,
+            //         basis: "stake",
+            //         contract_type: type,
+            //         currency: "USD",
+            //         duration: duration,
+            //         duration_unit: duration_unit,
+            //         symbol: SYMBOL,
+            //         barrier: barrier
+            //     }));
+            // }
         }
 
         /* ========= STATS ========= */
@@ -366,10 +402,18 @@
 
                     case "proposal_open_contract":
                         if (data.proposal_open_contract.is_sold) {
+                            openContracts--;
                             activeContract = null;
                             let profit = parseFloat(data.proposal_open_contract.profit);
-                            if (profit > 0) { stake = baseStake; lossStreak = 0; }
-                            else { lossStreak++; stake = parseFloat((stake * martingale).toFixed(2)); }
+                            if (profit > 0) { 
+                                sumProfit += profit;
+                                stake = parseFloat((baseStake + sumProfit).toFixed(2));
+                                lossStreak = 0;
+                            } else { 
+                                sumProfit = 0
+                                lossStreak++; 
+                                stake = parseFloat((stake * martingale).toFixed(2)); 
+                            }
                             updateStats(profit);
                             document.getElementById("stakeView").innerText = stake;
                             document.getElementById("ls").innerText = lossStreak;
