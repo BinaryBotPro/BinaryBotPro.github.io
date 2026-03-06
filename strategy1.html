@@ -150,7 +150,6 @@
         let contractType = null;
         let openContracts = 0;
         let maxContracts = 2;
-        let sumProfit = 0;
 
         /* ========= LOG ========= */
         function log(msg, color = "text-green-400") {
@@ -212,9 +211,9 @@
 
             document.getElementById("prob").innerText = trend.direction;
             if (trend.direction === 'DOWN') {
-                buy("CALL", 5, "t", "");
+                buy("PUT", 1, "t", "");
             } else if (trend.direction === 'UP') {
-                buy("PUT", 5, "t", "");
+                buy("CALL", 1, "t", "");
 
             }
             // const lastDigit = parseInt(String(prices[prices.length-1].toFixed(2)).slice(-1));
@@ -406,11 +405,9 @@
                             activeContract = null;
                             let profit = parseFloat(data.proposal_open_contract.profit);
                             if (profit > 0) { 
-                                sumProfit += profit;
-                                stake = parseFloat((baseStake + sumProfit).toFixed(2));
+                                stake = parseFloat((baseStake).toFixed(2));
                                 lossStreak = 0;
                             } else { 
-                                sumProfit = 0
                                 lossStreak++; 
                                 stake = parseFloat((stake * martingale).toFixed(2)); 
                             }
