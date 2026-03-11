@@ -181,9 +181,9 @@
 
             let direction = 'FLAT';
 
-            if (startPrice === min && endPrice3 === maxExceptLast && endPrice < endPrice2 && endPrice2 > endPrice3) {
+            if (startPrice === min && endPrice3 === maxExceptLast && endPrice > endPrice2 && endPrice2 < endPrice3) {
                 direction = 'UP';
-            } else if (startPrice === max && endPrice3 === minExceptLast && endPrice > endPrice2 && endPrice2 < endPrice3) {
+            } else if (startPrice === max && endPrice3 === minExceptLast && endPrice < endPrice2 && endPrice2 > endPrice3) {
                 direction = 'DOWN';
             }
             return { direction };
