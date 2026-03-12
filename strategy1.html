@@ -176,9 +176,7 @@
             const max = Math.max(...relevantTicks);
             const minExceptLast = Math.min(...ticksExceptLast);
             const maxExceptLast = Math.max(...ticksExceptLast);
-
-            console.log(relevantTicks);
-
+            
             let direction = 'FLAT';
 
             if (startPrice === min && endPrice3 === maxExceptLast && endPrice > endPrice2 && endPrice2 < endPrice3) {
@@ -194,9 +192,9 @@
         /* ========= PREDICT ========= */
         async function predict() {
             if (!isReady) return;
-            if (openContracts > 0) return;
+            // if (openContracts > 0) return;
             // if (!isReady || isTrading) return;
-            // if (activeContract) return;
+            if (activeContract) return;
 
             const trend = getTrend(prices, 20);
             // const digit = analyzeLastDigits(prices, 100);
