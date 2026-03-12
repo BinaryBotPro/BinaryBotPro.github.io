@@ -211,9 +211,9 @@
 
             document.getElementById("prob").innerText = trend.direction;
             if (trend.direction === 'DOWN') {
-                buy("PUT", 10, "t", "");
+                buy("PUT", 9, "t", "");
             } else if (trend.direction === 'UP') {
-                buy("CALL", 10, "t", "");
+                buy("CALL", 9, "t", "");
 
             }
             // const lastDigit = parseInt(String(prices[prices.length-1].toFixed(2)).slice(-1));
